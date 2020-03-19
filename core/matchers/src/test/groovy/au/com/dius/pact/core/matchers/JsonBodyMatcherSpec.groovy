@@ -405,6 +405,21 @@ class JsonBodyMatcherSpec extends Specification {
     '[{"i":"a"},{"i":"b"},{"i":"c"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]'
   }
 
+  def 'matching json bodies - return no mismatches - with ignore-order and regex matching'() {
+    given:
+    matchers.addCategory('body')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE) // test passes when this is removed
+        .addRule('$[0]', new RegexMatcher('[a-z]'))
+        .addRule('$[1]', new RegexMatcher('[A-Z]'))
+
+    expect:
+    matcher.matchBody(expectedBody, actualBody, true, matchers).empty
+
+    where:
+    actualBody = OptionalBody.body('["b","B"]'.bytes)
+    expectedBody = OptionalBody.body('["a","A"]'.bytes)
+  }
+
   @Unroll
   def 'matching json bodies - with ignore-order and min-type matching - when actual has extra elements'() {
     given:
