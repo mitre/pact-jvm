@@ -259,7 +259,6 @@ class JsonBodyMatcherSpec extends Specification {
     matcher.matchBody(expectedBody, actualBody, true, matchers).empty
 
     where:
-
     actualBody = OptionalBody.body('{"something": 100, "other": 100}'.bytes)
     expectedBody = OptionalBody.body('{"somethingElse": 100}'.bytes)
   }
@@ -332,92 +331,163 @@ class JsonBodyMatcherSpec extends Specification {
     expectedBody = OptionalBody.body('{"id": 100, "height": 100}'.bytes)
   }
 
-  @RestoreSystemProperties
-  def '''matching json bodies - return no mismatches - when comparing a list of numbers and ignore-order
-         matching is enabled'''() {
+  @Unroll
+  def 'matching json bodies - return no mismatches - with ignore-order - when comparing lists'() {
     given:
+    def expectedBody = OptionalBody.body(expected.bytes)
+    def actualBody = OptionalBody.body(actual.bytes)
     matchers.addCategory('body')
-      .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-      .addRule('$.array1[*]', TypeMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
+      .addRule('$', IgnoreOrderMatcher.INSTANCE)
+//      .addRule('$[*]', TypeMatcher.INSTANCE) //this type matcher makes this test pass even without the ignore-order matcher
 
     expect:
     matcher.matchBody(expectedBody, actualBody, true, matchers).empty
 
     where:
-    actualBody = OptionalBody.body('{"array1": [2, 3, 1, 4]}'.bytes)
-    expectedBody = OptionalBody.body('{"array1": [1, 2, 3, 4]}'.bytes)
+    expected                             | actual
+    '[1, 2, 3, 4]'                       | '[2, 3, 1, 4]'
+    '["a", "b", "c", "d"]'               | '["c", "a", "b", "d"]'
+    '[1, "b", 3, "d"]'                   | '["d", 1, 3, "b"]'
+    '[{"i": "a"}, {"i": 2}, {"i": "c"}]' | '[{"i": 2}, {"i": "c"}, {"i": "a"}]'
   }
 
-  @RestoreSystemProperties
-  def '''matching json bodies - return no mismatches - when comparing a list of objects and ignore-order
-         matching is enabled'''() {
+  @Unroll
+  def 'matching json bodies - return a mismatch - with ignore-order - when actual is missing an element'() {
     given:
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$.array1[*].foo', new RegexMatcher('a|b'))
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE)
 
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    !mismatches.empty
+    mismatches*.mismatch == ["Expected $actual to equal $expected ignoring order of elements".toString()]
+    /*
+    Should we have a more robust error message which explains the causes, such as?
+
+    "Expected $missing to be in $actual" +
+    asList(actual).map(a ->
+    """
+    - $missing does not match $a because:
+      - Expected $a to equal $missing"""
+    ).join()
+     */
+    mismatches*.path == ['$']
 
     where:
-    actualBody = OptionalBody.body('{"array1": [{"foo": "a"},{"foo": "b"}]}'.bytes)
-    expectedBody = OptionalBody.body('{"array1": [{"foo": "b"},{"foo": "a"}]}'.bytes)
+    expected                          | actual                  | missing
+    '[1,2,3,4,5]'                     | '[2,3,1,4]'             | '5'
+    '[{"i":"a"},{"i":"b"},{"i":"c"}]' | '[{"i":"b"},{"i":"a"}]' | '{"i":"c"}'
   }
 
-  @RestoreSystemProperties
-  def '''matching json bodies - return mismatches - when comparing a list of objects, ignore-order
-         matching is enabled and actual is smaller than expected'''() {
+  @Unroll
+  def 'matching json bodies - return a mismatch - with ignore-order - when actual has extra elements'() {
     given:
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$.array1[*].foo', new RegexMatcher('a|b|c'))
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE)  // test passes when this is removed
 
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).find {
-      it instanceof BodyMismatch && it.mismatch.contains('Expected [{"foo":"a"},{"foo":"b"}] to equal ' +
-              '[{"foo":"b"},{"foo":"a"},{"foo":"c"}] ignoring order of elements')
-    }
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    !mismatches.empty
+    mismatches*.mismatch == ["Expected a List with 3 elements but received 4 elements"]
+    mismatches*.path == ['$']
 
     where:
-    actualBody = OptionalBody.body('{"array1": [{"foo": "a"},{"foo": "b"}]}'.bytes)
-    expectedBody = OptionalBody.body('{"array1": [{"foo": "b"},{"foo": "a"},{"foo": "c"}]}'.bytes)
+    expected                          | actual
+    '[1,2,3]'                         | '[1,2,3,4]'
+    '[{"i":"a"},{"i":"b"},{"i":"c"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]'
   }
 
-  @RestoreSystemProperties
-  def '''matching json bodies - return no mismatches - when comparing two lists of objects, one with
-         ignore-order matching enabled and one not enabled'''() {
+  @Unroll
+  def 'matching json bodies - with ignore-order and min-type matching - when actual has extra elements'() {
+    given:
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body(expected.bytes)
+    matchers.addCategory('body')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE)
+        .addRule('$[0]', EqualsMatcher.INSTANCE)  // explicit EqualsMatcher needed to override MinTypeMatcher
+        .addRule('$[1]', EqualsMatcher.INSTANCE)
+        .addRule('$', new MinTypeMatcher(3))
+
+    expect:
+    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == match
+
+    where:
+    expected                | actual                            | match
+    '[1,2]'                 | '[1,2,3]'                         | true
+    '[1,2]'                 | '[2,1,3]'                         | true
+    '[1,2]'                 | '[1,3,4]'                         | false
+    '[{"i":"a"},{"i":"b"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"}]' | true
+  }
+
+  def 'matching json bodies - return type mismatch - with ignore-order and min-type matching'() {
+    given:
+    matchers.addCategory('body')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE) // test passes when this is removed
+        .addRule('$[0]', EqualsMatcher.INSTANCE)
+        .addRule('$', new MinTypeMatcher(1))
+
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    !mismatches.empty
+    mismatches*.mismatch == ['Expected "bad" (JsonPrimitive) to be the same type as 200 (JsonPrimitive)']
+    mismatches*.path == ['$.3']
+
+    where:
+    actualBody = OptionalBody.body('[200, 100, 300, "bad"]'.bytes)
+    expectedBody = OptionalBody.body('[200]'.bytes)
+  }
+
+  def 'matching json bodies - return equality mismatch - with ignore-order and min-type matching'() {
+    given:
+    matchers.addCategory('body')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE)
+        .addRule('$[0]', EqualsMatcher.INSTANCE)
+        .addRule('$', new MinTypeMatcher(1))
+
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    !mismatches.empty
+    mismatches*.mismatch == [
+        'Expected [200,100,300,400] to equal [50] ignoring order of elements',
+        'Expected ignore-order match of [50] and [200, 100, 300, 400]' // which is expected and actual here?
+        // this probably shouldn't return two mismatches for the same thing
+    ]
+    mismatches*.path == ['$', '$']
+    /*
+    Should we have a more robust error message which explains the causes, such as?
+
+    Expected 50 to be in [200,100,300,400]
+    - 50 does not match 200 because:
+      - Expected 200 to equal 50
+    - 50 does not match 100 because:
+      - Expected 100 to equal 50
+    - 50 does not match 300 because:
+      - Expected 300 to equal 50
+    - 50 does not match 400 because:
+      - Expected 400 to equal 50
+     */
+
+    where:
+    actualBody = OptionalBody.body('[200, 100, 300, 400]'.bytes)
+    expectedBody = OptionalBody.body('[50]'.bytes)
+  }
+
+  def 'matching json bodies - return a mismatches - with ignore-order set on another list'() {
     given:
     matchers.addCategory('body')
             .addRule('$[0].array1', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$[0].array1[*].foo', new RegexMatcher('a|b'))
-            .addRule('$[1].array2[*]', TypeMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty
-
-    where:
-    actualBody = OptionalBody.body('''[
-     {"array1": [{"foo": "a"},{"foo": "b"}]},
-     {"array2": [2, 3, 3, 4]}
-     ]'''.bytes)
-    expectedBody = OptionalBody.body('''[
-     {"array1": [{"foo": "b"},{"foo": "a"}]},
-     {"array2": [1, 2, 3, 4]}
-     ]'''.bytes)
-  }
-
-  @RestoreSystemProperties
-  def '''matching json bodies - return mismatches - when comparing two lists of objects, one with
-         ignore-order matching enabled and one not enabled'''() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$[0].array1', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$[0].array1[*].foo', new RegexMatcher('a|b'))
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
 
     expect:
     matcher.matchBody(expectedBody, actualBody, true, matchers).find {
@@ -425,163 +495,138 @@ class JsonBodyMatcherSpec extends Specification {
     }
 
     where:
-    actualBody = OptionalBody.body('''[
-     {"array1": [{"foo": "a"},{"foo": "b"}]},
-     {"array2": [2, 3, 1, 4]}
-     ]'''.bytes)
-    expectedBody = OptionalBody.body('''[
-     {"array1": [{"foo": "b"},{"foo": "a"}]},
-     {"array2": [1, 2, 3, 4]}
-     ]'''.bytes)
-  }
-
-  @RestoreSystemProperties
-  def '''matching json bodies - returns a mismatch - when comparing a list to one with different
-         size and ignore-order matching enabled'''() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$.array1[*]', TypeMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-    def actualBody = OptionalBody.body('{"array1": [2, 1, 3]}'.bytes)
-    def expectedBody = OptionalBody.body('{"array1": [1, 2, 3, 4]}'.bytes)
-
-    when:
-    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers).findAll {
-      it instanceof BodyMismatch
-    }*.mismatch
-
-    then:
-    mismatches.size() == 1
-    mismatches.contains('Expected [2,1,3] to equal [1,2,3,4] ignoring order of elements')
-  }
-
-  @RestoreSystemProperties
-  def '''matching json bodies - return no mismatches - with each like matcher on unequal lists
-         and ignore-order matching enabled'''() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$.array1', new MinTypeMatcher(1))
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty
-
-    where:
-    actualBody = OptionalBody.body('{"array1": [100, 200, 300, 400]}'.bytes)
-    expectedBody = OptionalBody.body('{"array1": [200]}'.bytes)
-  }
-
-  @RestoreSystemProperties
-  def 'matching json bodies - return no mismatches - with multiple of the same elements'() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$.array1', TypeMatcher.INSTANCE)
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty
-
-    where:
-    actualBody = OptionalBody.body('{"array1": [100, 100, 100, 400]}'.bytes)
-    expectedBody = OptionalBody.body('{"array1": [100, 100]}'.bytes)
-  }
-
-  @RestoreSystemProperties
-  def 'matching json bodies - return mismatches - with multiple of the same elements'() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$.array1', TypeMatcher.INSTANCE)
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-    def actualBody = OptionalBody.body('{"array1": [100, 100, 100, 400]}'.bytes)
-    def expectedBody = OptionalBody.body('{"array1": [100, 100, 500]}'.bytes)
-
-    when:
-    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers).findAll {
-      it instanceof BodyMismatch
-    }*.mismatch
-
-    then:
-    mismatches.size() == 1
-    mismatches.contains('Expected [100,100,100,400] to equal [100,100,500] ignoring order of elements')
-  }
-
-  @RestoreSystemProperties
-  def 'matching json bodies - return no mismatches - with unordered matching of elements with unique ids'() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$.array', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$.array[*].id', new EqualsMatcher())
-            .addRule('$.array[0].status', new EqualsMatcher())
-            .addRule('$.array[1].status', new RegexMatcher('up|down'))
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == result
-
-    where:
-    actualBody << [OptionalBody.body('{"array": [{"id":"b", "status":"up"},{"id":"a", "status":"down"}]}'.bytes),
-                   OptionalBody.body('{"array": [{"id":"a", "status":"up"},{"id":"b", "status":"down"}]}'.bytes),
-                   OptionalBody.body('{"array": [{"id":"a", "status":"up"},{"id":"b", "status":"up"}]}'.bytes),
-                   OptionalBody.body('{"array": [{"id":"b", "status":"down"},{"id":"a", "status":"up"}]}'.bytes)]
-
-    expectedBody << [OptionalBody.body('{"array": [{"id":"a", "status":"up"},{"id":"b", "status":"down"}]}'.bytes),
-                     OptionalBody.body('{"array": [{"id":"a", "status":"up"},{"id":"b", "status":"down"}]}'.bytes),
-                     OptionalBody.body('{"array": [{"id":"a", "status":"up"},{"id":"b", "status":"down"}]}'.bytes),
-                     OptionalBody.body('{"array": [{"id":"a", "status":"up"},{"id":"b", "status":"down"}]}'.bytes)]
-
-    result << [false, true, true, true]
-  }
-
-  @RestoreSystemProperties
-  def 'matching json bodies - return no mismatches - with unordered matching of mixed elements'() {
-    given:
-    matchers.addCategory('body')
-            .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$.array1[*].id', new EqualsMatcher())
-            .addRule('$.array1[0].status', new EqualsMatcher())
-            .addRule('$.array1[1].status', new RegexMatcher('up|down'))
-            .addRule('$.array1[3]', TypeMatcher.INSTANCE)
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
-
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty
-
-    where:
-    actualBody = OptionalBody.body('{"array1": [{"id":"b", "status":"up"}, {"id":"a", "status":"up"}, 5]}'.bytes)
-    expectedBody = OptionalBody.body('{"array1": [{"id":"a", "status":"up"}, 4, {"id":"b", "status":"down"}]}'.bytes)
+    actualBody = OptionalBody.body('''{
+     "array1": [{"foo": "a"},{"foo": "b"}],
+     "array2": [2, 3, 1, 4]
+     }'''.bytes)
+    expectedBody = OptionalBody.body('''{
+     "array1": [{"foo": "b"},{"foo": "a"}],
+     "array2": [1, 2, 3, 4]
+     }'''.bytes)
   }
 
   @Unroll
-  @RestoreSystemProperties
-  def 'matching json bodies - return no mismatches - with unordered matching of elements without unique ids'() {
+  def 'matching json bodies - with ignore-order - and multiple of the same element'() {
     given:
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-            .addRule('$.array', IgnoreOrderMatcher.INSTANCE)
-            .addRule('$.array[0].foo', new RegexMatcher('a|b'))
-            .addRule('$.array[0].status', new EqualsMatcher())
-            .addRule('$.array[1].foo', new RegexMatcher('b|c'))
-            .addRule('$.array[1].status', new RegexMatcher('up|down'))
-    System.setProperty(Matchers.PACT_MATCHING_IGNORE_ORDER, 'true')
+            .addRule('$', IgnoreOrderMatcher.INSTANCE)
 
     expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == result
+    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == matches
 
     where:
-    actualBody << [OptionalBody.body('{"array": [{"foo":"b", "status":"up"},{"foo":"b", "status":"down"}]}'.bytes),
-                   OptionalBody.body('{"array": [{"foo":"a", "status":"up"},{"foo":"b", "status":"down"}]}'.bytes),
-                   OptionalBody.body('{"array": [{"foo":"a", "status":"up"},{"foo":"b", "status":"up"}]}'.bytes),
-                   OptionalBody.body('{"array": [{"foo":"b", "status":"down"},{"foo":"a", "status":"up"}]}'.bytes)]
+    expected                    | actual                           | matches
+    '[100, 100]'                | '[100, 100, 400]'                | true
+    '[100, 100]'                | '[100, 100, 100, 400]'           | true
+    '[100, 100]'                | '[100, 200, 400]'                | false // only one 100 in actual
+    '[100, 100, 200]'           | '[100, 200, 100, 400]'           | true
+    '[100, 100, 200, 200, 300]' | '[100, 300, 200, 100, 200, 400]' | true
+    '[100, 100, 200, 200, 300]' | '[100, 300, 300, 100, 200, 400]' | false // only one 200 in actual
+  }
 
-    expectedBody << [OptionalBody.body('{"array": [{"foo":"a", "status":"up"},{"foo":"b", "status":"down"}]}'.bytes),
-                     OptionalBody.body('{"array": [{"foo":"a", "status":"up"},{"foo":"b", "status":"down"}]}'.bytes),
-                     OptionalBody.body('{"array": [{"foo":"a", "status":"up"},{"foo":"b", "status":"down"}]}'.bytes),
-                     OptionalBody.body('{"array": [{"foo":"a", "status":"up"},{"foo":"b", "status":"down"}]}'.bytes)]
+  @Unroll
+  def 'matching json bodies - with ignore-order - and elements with unique ids'() {
+    given:
+    matchers.addCategory('body')
+            .addRule('$', IgnoreOrderMatcher.INSTANCE)
+            .addRule('$[*].id', new EqualsMatcher())
+            .addRule('$[0].status', new EqualsMatcher())
+            .addRule('$[1].status', new RegexMatcher('up|down'))
+    def expectedBody = OptionalBody.body('[{"id":"a", "status":"up"},{"id":"b", "status":"down"}]'.bytes)
+    def actualBody = OptionalBody.body(actual.bytes)
 
-    result << [true, true, true, true]
+    expect:
+    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == matches
+
+    where:
+    actual                                                    | matches
+    '[{"id":"b", "status":"up"},{"id":"a", "status":"down"}]' | false
+    '[{"id":"a", "status":"up"},{"id":"b", "status":"down"}]' | true
+    '[{"id":"a", "status":"up"},{"id":"b", "status":"up"}]'   | true
+    '[{"id":"b", "status":"down"},{"id":"a", "status":"up"}]' | true
+  }
+
+  @Unroll
+  def 'matching json bodies - with ignore-order - and mixed elements'() {
+    given:
+    matchers.addCategory('body')
+            .addRule('$', IgnoreOrderMatcher.INSTANCE)
+            .addRule('$[*].id', new EqualsMatcher())
+            .addRule('$[0].status', new EqualsMatcher())
+            .addRule('$[1].status', new RegexMatcher('up|down'))
+            .addRule('$[3]', TypeMatcher.INSTANCE)
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body('[{"id":"a", "status":"up"}, 4, {"id":"b", "status":"down"}]'.bytes)
+
+    expect:
+    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == matches
+
+    where:
+    actual                                                        | matches
+    '[{"id":"a", "status":"up"}, 4, {"id":"b", "status":"down"}]' | true
+    '[{"id":"b", "status":"up"}, {"id":"a", "status":"up"}, 5]'   | true
+    '[{"id":"b", "status":"down"}, {"id":"a", "status":"up"}, 5]' | true
+    '[{"id":"b", "status":"up"}, {"id":"a", "status":"down"}, 5]' | false
+    '[{"id":"c", "status":"up"}, {"id":"a", "status":"up"}, 5]'   | false
+  }
+
+  @Unroll
+  def 'matching json bodies - with ignore-order - and elements without unique ids'() {
+    given:
+    matchers.addCategory('body')
+            .addRule('$', IgnoreOrderMatcher.INSTANCE)
+            .addRule('$[0].id', new RegexMatcher('a|b'))
+            .addRule('$[0].status', new EqualsMatcher())
+            .addRule('$[1].id', new RegexMatcher('b|c'))
+            .addRule('$[1].status', new RegexMatcher('up|down'))
+    def expectedBody = OptionalBody.body('[{"id":"a", "status":"up"},{"id":"b", "status":"down"}]'.bytes)
+    def actualBody = OptionalBody.body(actual.bytes)
+
+    expect:
+    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == matches
+
+    where:
+    actual                                                    | matches
+    '[{"id":"b", "status":"up"},{"id":"b", "status":"down"}]' | true  // expected[0]==actual[0] & expected[1]==actual[0|1]
+    '[{"id":"a", "status":"up"},{"id":"b", "status":"down"}]' | true  // expected[0]==actual[0] & expected[1]==actual[1]
+    '[{"id":"a", "status":"up"},{"id":"b", "status":"up"}]'   | true  // expected[0]==actual[0] & expected[1]==actual[1]
+    '[{"id":"b", "status":"down"},{"id":"c", "status":"up"}]' | false // expected[0] no match & expected[1]==actual[0|1]
+    '[{"id":"b", "status":"up"},{"id":"c", "status":"up"}]'   | false // expected[0|1]==actual[0], no unique for all expected
+  }
+
+  def 'matching json bodies - returns a mismatch - with ignore-order - and elements without unique ids'() {
+    given:
+    matchers.addCategory('body')
+        .addRule('$', IgnoreOrderMatcher.INSTANCE)
+        .addRule('$[0].id', new RegexMatcher('a|b'))
+        .addRule('$[0].status', EqualsMatcher.INSTANCE)
+        .addRule('$[1].id', new RegexMatcher('b|c'))
+        .addRule('$[1].status', new RegexMatcher('up|down'))
+    def expectedBody = OptionalBody.body('[{"id":"a","status":"up"},{"id":"b","status":"down"}]'.bytes)
+    def actualBody = OptionalBody.body('[{"id":"c","status":"down"},{"id":"b","status":"down"}]'.bytes)
+
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    mismatches*.mismatch == [
+        'Expected ignore-order match of [{"id":"a","status":"up"}, ' +
+            '{"id":"b","status":"down"}] and [{"id":"c","status":"down"}, {"id":"b","status":"down"}]'
+        // unclear which is expected and actual here?
+    ]
+    /*
+    Should we have a more robust error message which explains the causes, such as?
+
+    Expected {"id":"a","status":"up"} to be in [{"id":"c","status":"down"},{"id":"b","status":"down"}]
+    - {"id":"a","status":"up"} does not match {"id":"c","status":"down"} because:
+      - Expected "c" to match 'a|b'
+      - Expected "down" to equal "up"
+    - {"id":"a","status":"up"} does not match {"id":"b","status":"down"} because:
+      - Expected "down" to equal "up"
+    */
+    mismatches*.path == ['$']
   }
 
 }
