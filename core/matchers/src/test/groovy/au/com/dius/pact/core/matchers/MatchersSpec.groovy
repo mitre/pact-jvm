@@ -8,6 +8,8 @@ import au.com.dius.pact.core.model.matchingrules.IgnoreOrderMatcher
 import au.com.dius.pact.core.model.matchingrules.IncludeMatcher
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup
 import au.com.dius.pact.core.model.matchingrules.MatchingRulesImpl
+import au.com.dius.pact.core.model.matchingrules.MinMaxEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MinTypeMatcher
 import au.com.dius.pact.core.model.matchingrules.NullMatcher
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher
@@ -87,7 +89,7 @@ class MatchersSpec extends Specification {
 
   def 'ignore-orderMatcherDefined - should be true when there is an IgnoreOrderMatcher'() {
     expect:
-    Matchers.ignoreOrderMatcherDefined(['$', 'array1'], 'body', matchingRules())
+    Matchers.ignoreOrderMatcherDefined('body', ['$', 'array1'], matchingRules())
 
     where:
     matchingRules = {
@@ -102,7 +104,7 @@ class MatchersSpec extends Specification {
 
   def 'ignore-orderMatcherDefined - should be false when there is no IgnoreOrderMatcher'() {
     expect:
-    !Matchers.ignoreOrderMatcherDefined(['$', 'array1'], 'body', matchingRules())
+    !Matchers.ignoreOrderMatcherDefined('body', ['$', 'array1'], matchingRules())
 
     where:
     matchingRules = {
@@ -110,6 +112,62 @@ class MatchersSpec extends Specification {
       matchingRules.addCategory('body')
         .addRule('$.array1[*].foo', new RegexMatcher('a|b'))
         .addRule('$.array1[*].status', new RegexMatcher('up'))
+      matchingRules
+    }
+  }
+
+  def 'ignore-orderMatcherDefined - should be true when any IgnoreOrderMatcher defined'() {
+    expect:
+    Matchers.oneOfIgnoreOrderMatchersDefined('body', ['$', 'array1'], matchingRules())
+
+    where:
+    matchingRules = {
+      def matchingRules = new MatchingRulesImpl()
+      matchingRules.addCategory('body')
+        .addRule('$.array1', new MinMaxEqualsIgnoreOrderMatcher(3, 5))
+        .addRule('$.array1[*].foo', new RegexMatcher('a|b'))
+        .addRule('$.array1[*].status', new RegexMatcher('up'))
+      matchingRules
+    }
+  }
+
+  def 'ignore-orderMatcherDefined - should be false when there no IgnoreOrderMatcher defined'() {
+    expect:
+    !Matchers.oneOfIgnoreOrderMatchersDefined('body', ['$', 'array1'], matchingRules())
+
+    where:
+    matchingRules = {
+      def matchingRules = new MatchingRulesImpl()
+      matchingRules.addCategory('body')
+        .addRule('$.array1[*].foo', new RegexMatcher('a|b'))
+        .addRule('$.array1[*].status', new RegexMatcher('up'))
+      matchingRules
+    }
+  }
+
+  def 'ignore-orderMatcherDefined - should be true when only IgnoreOrderMatcher defined'() {
+    expect:
+    Matchers.ignoreOrderMatcherDefined('body', ['$', 'array1'], matchingRules())
+
+    where:
+    matchingRules = {
+      def matchingRules = new MatchingRulesImpl()
+      matchingRules.addCategory('body')
+              .addRule('$.array1', IgnoreOrderMatcher.INSTANCE)
+      matchingRules
+    }
+  }
+
+  def 'ignore-orderMatcherDefined - should be false when not only IgnoreOrderMatcher defined'() {
+    expect:
+    !Matchers.ignoreOrderMatcherDefined('body', ['$', 'array1'], matchingRules())
+
+    where:
+    matchingRules = {
+      def matchingRules = new MatchingRulesImpl()
+      matchingRules.addCategory('body')
+              .addRule('$.array1', new MinMaxEqualsIgnoreOrderMatcher(3, 5))
+              .addRule('$.array1', new MinTypeMatcher(3))
       matchingRules
     }
   }

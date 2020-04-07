@@ -100,8 +100,10 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
   }
 
   /**
-   * Compares each 'expected' against all 'actual'. If any 'expected' matches then 'match==true' for that index.
-   * However, if iterated through entire 'expected' and no match in 'actual', then there is a mismatch.
+   * Compares each 'expected' against all 'actual'
+   * If any 'expected' matches then 'match==true' for that index
+   *   Remove 'actual[index]' in case there are duplicates in 'expected'
+   * However, if iterated through entire 'expected' and no match in 'actual', then there is a mismatch
    */
   fun compareListContentUnordered(
     expectedValues: List<JsonElement>,
@@ -111,24 +113,27 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
     matchers: MatchingRules
   ): List<BodyMismatch> {
     val result = mutableListOf<BodyMismatch>()
+    var mutableActuals = actualValues.toMutableList()
     for ((expectedIndex, expectedValue) in expectedValues.withIndex()) {
       if (expectedIndex < actualValues.size) {
         var match = false
-        for (actualValue in actualValues) {
+        for ((actualIndex, actualValue) in mutableActuals.withIndex()) {
           val outcome = compare(path + expectedIndex.toString(), expectedValue, actualValue, allowUnexpectedKeys, matchers)
           if (outcome.isEmpty()) {
-            result.addAll(outcome)
             match = true
+            mutableActuals.removeAt(actualIndex)
+            break
           }
         }
         if (!match) {
           result.add(BodyMismatch(expectedValues, actualValues,
-                  "Expected ignore-order match of ${valueOf(expectedValues)} and ${valueOf(actualValues)}",
-                  path.joinToString("."), generateJsonDiff(expectedValues.toJsonArray(), actualValues.toJsonArray())))
+          "Expected ${valueOf(expectedValues)} to equal ${valueOf(actualValues)} ignoring order of elements",
+            path.joinToString("."), generateJsonDiff(expectedValues.toJsonArray(), actualValues.toJsonArray())))
         }
-      } else if (!Matchers.matcherDefined("body", path, matchers)) {
+      } else if (!Matchers.matcherDefined("body", path, matchers) ||
+        Matchers.oneOfIgnoreOrderMatchersDefined("body", path, matchers)) {
         result.add(BodyMismatch(expectedValues, actualValues, "Expected ${valueOf(expectedValue)} but was missing",
-                path.joinToString("."), generateJsonDiff(expectedValues.toJsonArray(), actualValues.toJsonArray())))
+          path.joinToString("."), generateJsonDiff(expectedValues.toJsonArray(), actualValues.toJsonArray())))
       }
     }
     return result
@@ -145,21 +150,19 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
   ): List<BodyMismatch> {
     val expectedList = expectedValues.toList()
     val actualList = actualValues.toList()
-    return if (Matchers.matcherDefined("body", path, matchers)) {
+    return if (Matchers.matcherDefined("body", path, matchers) &&
+        !Matchers.oneOfIgnoreOrderMatchersDefined("body", path, matchers)) {
+      // match ordered list - at least one body matcher defined
       logger.debug { "compareLists: Matcher defined for path $path" }
       val result = Matchers.domatch(matchers, "body", path, expectedValues, actualValues, BodyMismatchFactory)
         .toMutableList()
       if (expectedList.isNotEmpty()) {
-        if (Matchers.ignoreOrderMatcherDefined(path, "body", matchers)) {
-          // No need to pad 'expected' as we already visit all 'actual' values
-          result.addAll(compareListContentUnordered(expectedList, actualList, path, allowUnexpectedKeys, matchers))
-        } else {
-          result.addAll(compareListContent(expectedList.padTo(actualValues.size(), expectedValues.first()),
-                  actualList, path, allowUnexpectedKeys, matchers))
-        }
+        result.addAll(compareListContent(expectedList.padTo(actualValues.size(), expectedValues.first()),
+          actualList, path, allowUnexpectedKeys, matchers))
       }
       result
-    } else {
+    } else if (!Matchers.matcherDefined("body", path, matchers)) {
+      // match ordered list - no body matcher, default to equals matcher
       if (expectedList.isEmpty() && actualList.isNotEmpty()) {
         listOf(BodyMismatch(a, b, "Expected an empty List but received ${valueOf(actualValues)}",
           path.joinToString("."), generateJsonDiff(expectedValues, actualValues)))
@@ -172,6 +175,22 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
         }
         result
       }
+    } else {
+      // match unordered list
+      logger.debug { "compareLists: IgnoreOrderMatcher defined for path $path" }
+      val result = Matchers.domatch(matchers, "body", path, expectedValues, actualValues, BodyMismatchFactory)
+          .toMutableList()
+      if (expectedList.isNotEmpty()) {
+        // No need to pad 'expected' as we already visit all 'actual' values
+        result.addAll(compareListContentUnordered(expectedList, actualList, path, allowUnexpectedKeys, matchers))
+        if (Matchers.ignoreOrderMatcherDefined("body", path, matchers) &&
+            (expectedValues.size() != actualValues.size())) {
+          result.add(BodyMismatch(a, b,
+            "Expected a List with ${expectedValues.size()} elements but received ${actualValues.size()} elements",
+            path.joinToString("."), generateJsonDiff(expectedValues, actualValues)))
+        }
+      }
+      result
     }
   }
 

@@ -1,5 +1,7 @@
 package au.com.dius.pact.core.matchers
 
+import au.com.dius.pact.core.matchers.util.instanceMapOf
+import au.com.dius.pact.core.matchers.util.subsetOf
 import au.com.dius.pact.core.model.matchingrules.*
 import com.google.gson.*
 import mu.KotlinLogging
@@ -104,16 +106,12 @@ fun <M : Mismatch> domatch(
     is IncludeMatcher -> matchInclude(matcher.value, path, expected, actual, mismatchFn)
     is NullMatcher -> matchNull(path, actual, mismatchFn)
     is IgnoreOrderMatcher -> matchIgnoringOrder(path, expected, actual, mismatchFn)
+    is MinEqualsIgnoreOrderMatcher -> matchMinEquals(matcher.min, path, expected, actual, mismatchFn)
+    is MaxEqualsIgnoreOrderMatcher -> matchMaxEquals(matcher.max, path, expected, actual, mismatchFn)
+    is MinMaxEqualsIgnoreOrderMatcher -> matchMinEquals(matcher.min, path, expected, actual, mismatchFn) +
+            matchMaxEquals(matcher.max, path, expected, actual, mismatchFn)
     else -> matchEquality(path, expected, actual, mismatchFn)
   }
-}
-
-fun isIgnoreOrderMatcher(
-  matcher: MatchingRule,
-  expected: Any?,
-  actual: Any?
-): () -> Boolean = {
-  matcher is IgnoreOrderMatcher && actual is JsonArray && expected is JsonArray
 }
 
 fun <M : Mismatch> matchIgnoringOrder(
@@ -129,26 +127,26 @@ fun <M : Mismatch> matchIgnoringOrder(
       true
     }
     actual is JsonArray && expected is JsonArray -> {
-      val actualSet: MutableSet<String> = actual.map { it.toString() }.toMutableSet()
-      val expectedSet: MutableSet<String> = expected.map { it.toString() }.toMutableSet()
+      val actualMap = instanceMapOf(actual.map { it.toString() })
+      val expectedMap = instanceMapOf(expected.map { it.toString() })
       when {
-        expected.size() == actual.size() && expectedSet == actualSet -> true
-        expected.size() < actual.size() && actualSet.containsAll(expectedSet) -> true
+        actualMap == expectedMap -> true
+        subsetOf(expectedMap, actualMap) -> true
         expected.size() > actual.size() -> false
         else -> {
-          val actualJsonObjects: List<JsonElement> = actual.filter { it is JsonObject }
-          val expectedJsonObjects: List<JsonElement> = expected.filter { it is JsonObject }
+          val actualJsonObjects: List<JsonElement> = actual.filter { it is JsonElement }
+          val expectedJsonObjects: List<JsonElement> = expected.filter { it is JsonElement }
           actualJsonObjects.isNotEmpty() || expectedJsonObjects.isNotEmpty()
         }
       }
     }
     else -> false
   }
-  logger.debug { "comparing ${valueOf(actual)} to ${valueOf(expected)} ignoring order of elements at $path -> $matches" }
+  logger.debug { "comparing ${valueOf(expected)} to ${valueOf(actual)} ignoring order of elements at $path -> $matches" }
   return if (matches) {
     emptyList()
   } else {
-    listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to equal ${valueOf(expected)} ignoring order of elements", path))
+    listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(expected)} to equal ${valueOf(actual)} ignoring order of elements", path))
   }
 }
 
@@ -416,6 +414,68 @@ fun <M : Mismatch> matchMaxType(
     }
   } else {
       matchType(path, expected, actual, mismatchFactory)
+  }
+}
+
+fun <M : Mismatch> matchMinEquals(
+  min: Int,
+  path: List<String>,
+  expected: Any?,
+  actual: Any?,
+  mismatchFactory: MismatchFactory<M>
+): List<M> {
+  logger.debug { "comparing ${valueOf(actual)} with minimum $min at $path" }
+  return if (actual is List<*>) {
+    if (actual.size < min) {
+      listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to have minimum $min", path))
+    } else {
+      emptyList()
+    }
+  } else if (actual is JsonArray) {
+    if (actual.size() < min) {
+      listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to have minimum $min", path))
+    } else {
+      emptyList()
+    }
+  } else if (actual is Element) {
+    if (actual.childNodes.length < min) {
+      listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to have minimum $min", path))
+    } else {
+      emptyList()
+    }
+  } else {
+    matchEquality(path, expected, actual, mismatchFactory)
+  }
+}
+
+fun <M : Mismatch> matchMaxEquals(
+  max: Int,
+  path: List<String>,
+  expected: Any?,
+  actual: Any?,
+  mismatchFactory: MismatchFactory<M>
+): List<M> {
+  logger.debug { "comparing ${valueOf(actual)} with maximum $max at $path" }
+  return if (actual is List<*>) {
+    if (actual.size > max) {
+      listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to have maximum $max", path))
+    } else {
+      emptyList()
+    }
+  } else if (actual is JsonArray) {
+    if (actual.size() > max) {
+      listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to have maximum $max", path))
+    } else {
+      emptyList()
+    }
+  } else if (actual is Element) {
+    if (actual.childNodes.length > max) {
+      listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(actual)} to have maximum $max", path))
+    } else {
+      emptyList()
+    }
+  } else {
+    matchEquality(path, expected, actual, mismatchFactory)
   }
 }
 

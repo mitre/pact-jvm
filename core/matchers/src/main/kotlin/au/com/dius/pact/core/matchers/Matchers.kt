@@ -3,9 +3,7 @@ package au.com.dius.pact.core.matchers
 import au.com.dius.pact.core.matchers.util.corresponds
 import au.com.dius.pact.core.matchers.util.tails
 import au.com.dius.pact.core.model.PathToken
-import au.com.dius.pact.core.model.matchingrules.IgnoreOrderMatcher
-import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup
-import au.com.dius.pact.core.model.matchingrules.MatchingRules
+import au.com.dius.pact.core.model.matchingrules.*
 import au.com.dius.pact.core.model.parsePath
 import mu.KLogging
 import java.util.Comparator
@@ -77,22 +75,39 @@ object Matchers : KLogging() {
     else false
 
   /**
-   * If ignore-order matching logic is enabled (where array contents can be in any order)
+   * Determines if the one and only IgnoreOrderMatcher is defined on an array
    */
   @JvmStatic
-  fun ignoreOrderMatchingEnabled() = System.getProperty(PACT_MATCHING_IGNORE_ORDER)?.trim() == "true"
-
-  /**
-   * Determines if an ignore-order matcher is defined on an array
-   */
-  @JvmStatic
-  fun ignoreOrderMatcherDefined(path: List<String>, category: String, matchers: MatchingRules?) =
-    if (matchers != null) {
-      val resolvedMatchers = matchers.rulesForCategory(category).filter(Predicate {
-        matchesPath(it, path) == path.size
-      })
+  fun ignoreOrderMatcherDefined(category: String, path: List<String>, matchers: MatchingRules?) =
+  if (matchers != null) {
+    val resolvedMatchers = matchers.rulesForCategory(category).filter(Predicate {
+      // filter on paths that equal length of current path
+      matchesPath(it, path) == path.size
+    })
       resolvedMatchers.matchingRules.values.any { value -> value.rules.contains(IgnoreOrderMatcher) }
     } else false
+
+  /**
+   * Determines if any ignore-order matcher is defined on an array
+   */
+  @JvmStatic
+  fun oneOfIgnoreOrderMatchersDefined(category: String, path: List<String>, matchers: MatchingRules?) =
+    if (matchers != null) {
+      val resolvedMatchers = matchers.rulesForCategory(category)
+      resolvedMatchers.matchingRules.values.any { value -> value.rules.any {
+        it is IgnoreOrderMatcher ||
+        it is MinEqualsIgnoreOrderMatcher ||
+        it is MaxEqualsIgnoreOrderMatcher ||
+        it is MinMaxEqualsIgnoreOrderMatcher }
+      }
+    } else false
+
+  /**
+   * If ignore-order matching logic is enabled (where array contents can be in any order)
+   * TODO possibly remove this function
+   */
+  @JvmStatic
+  fun ignoreOrderMatchingEnabled(): Boolean = System.getProperty(PACT_MATCHING_IGNORE_ORDER)?.trim() == "true"
 
   /**
    * Determines if a matcher of the form '.*' exists for the path

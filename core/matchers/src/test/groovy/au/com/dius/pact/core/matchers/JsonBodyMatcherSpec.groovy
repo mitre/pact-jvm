@@ -4,6 +4,7 @@ import au.com.dius.pact.core.model.OptionalBody
 import au.com.dius.pact.core.model.matchingrules.EqualsMatcher
 import au.com.dius.pact.core.model.matchingrules.IgnoreOrderMatcher
 import au.com.dius.pact.core.model.matchingrules.MatchingRulesImpl
+import au.com.dius.pact.core.model.matchingrules.MinEqualsIgnoreOrderMatcher
 import au.com.dius.pact.core.model.matchingrules.MinTypeMatcher
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher
@@ -136,7 +137,6 @@ class JsonBodyMatcherSpec extends Specification {
     }
 
     where:
-
     actualBody = OptionalBody.body('{"something": 100}'.bytes)
     expectedBody = OptionalBody.body('{}'.bytes)
   }
@@ -149,7 +149,6 @@ class JsonBodyMatcherSpec extends Specification {
     }
 
     where:
-
     actualBody = OptionalBody.body('[100]'.bytes)
     expectedBody = OptionalBody.body('[]'.bytes)
   }
@@ -338,7 +337,6 @@ class JsonBodyMatcherSpec extends Specification {
     def actualBody = OptionalBody.body(actual.bytes)
     matchers.addCategory('body')
       .addRule('$', IgnoreOrderMatcher.INSTANCE)
-//      .addRule('$[*]', TypeMatcher.INSTANCE) //this type matcher makes this test pass even without the ignore-order matcher
 
     expect:
     matcher.matchBody(expectedBody, actualBody, true, matchers).empty
@@ -363,24 +361,18 @@ class JsonBodyMatcherSpec extends Specification {
     def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
 
     then:
-    !mismatches.empty
-    mismatches*.mismatch == ["Expected $actual to equal $expected ignoring order of elements".toString()]
-    /*
-    Should we have a more robust error message which explains the causes, such as?
-
-    "Expected $missing to be in $actual" +
-    asList(actual).map(a ->
-    """
-    - $missing does not match $a because:
-      - Expected $a to equal $missing"""
-    ).join()
-     */
-    mismatches*.path == ['$']
+    mismatches.size() == 3
+    mismatches*.mismatch == [
+            "Expected $expected to equal $actual ignoring order of elements",
+            "Expected $missing but was missing",
+            'Expected a List with 4 elements but received 3 elements'
+    ]
+    mismatches*.path == ['$', '$', '$']
 
     where:
-    expected                          | actual                  | missing
-    '[1,2,3,4,5]'                     | '[2,3,1,4]'             | '5'
-    '[{"i":"a"},{"i":"b"},{"i":"c"}]' | '[{"i":"b"},{"i":"a"}]' | '{"i":"c"}'
+    expected                                    | actual                            | missing
+    '[1,2,3,4]'                                 | '[2,3,1]'                         | '4'
+    '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]' | '[{"i":"b"},{"i":"a"},{"i":"c"}]' | '{"i":"d"}'
   }
 
   @Unroll
@@ -396,7 +388,7 @@ class JsonBodyMatcherSpec extends Specification {
 
     then:
     !mismatches.empty
-    mismatches*.mismatch == ["Expected a List with 3 elements but received 4 elements"]
+    mismatches*.mismatch == ['Expected a List with 3 elements but received 4 elements']
     mismatches*.path == ['$']
 
     where:
@@ -405,8 +397,11 @@ class JsonBodyMatcherSpec extends Specification {
     '[{"i":"a"},{"i":"b"},{"i":"c"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]'
   }
 
+  @Unroll
   def 'matching json bodies - return no mismatches - with ignore-order and regex matching'() {
     given:
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
         .addRule('$', IgnoreOrderMatcher.INSTANCE) // test passes when this is removed
         .addRule('$[0]', new RegexMatcher('[a-z]'))
@@ -416,23 +411,24 @@ class JsonBodyMatcherSpec extends Specification {
     matcher.matchBody(expectedBody, actualBody, true, matchers).empty
 
     where:
-    actualBody = OptionalBody.body('["b","B"]'.bytes)
-    expectedBody = OptionalBody.body('["a","A"]'.bytes)
+    expected                | actual                            | match
+    '["a","A"]'             | '["b","B"]'                       | true
+    '["A","a"]'             | '["b","B"]'                       | true
   }
 
   @Unroll
-  def 'matching json bodies - with ignore-order and min-type matching - when actual has extra elements'() {
+  def 'matching json bodies - with ignore-order and min-equals matching - when actual has extra elements'() {
     given:
     def actualBody = OptionalBody.body(actual.bytes)
     def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-        .addRule('$', IgnoreOrderMatcher.INSTANCE)
-        .addRule('$[0]', EqualsMatcher.INSTANCE)  // explicit EqualsMatcher needed to override MinTypeMatcher
-        .addRule('$[1]', EqualsMatcher.INSTANCE)
-        .addRule('$', new MinTypeMatcher(3))
+        .addRule('$', new MinEqualsIgnoreOrderMatcher(3))
 
-    expect:
-    matcher.matchBody(expectedBody, actualBody, true, matchers).empty == match
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    mismatches.empty == match
 
     where:
     expected                | actual                            | match
@@ -442,44 +438,39 @@ class JsonBodyMatcherSpec extends Specification {
     '[{"i":"a"},{"i":"b"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"}]' | true
   }
 
-  def 'matching json bodies - return type mismatch - with ignore-order and min-type matching'() {
+  def 'matching json bodies - return equality match - with ignore-order and min-equals matching'() {
     given:
     matchers.addCategory('body')
-        .addRule('$', IgnoreOrderMatcher.INSTANCE) // test passes when this is removed
-        .addRule('$[0]', EqualsMatcher.INSTANCE)
-        .addRule('$', new MinTypeMatcher(1))
+      .addRule('$', new MinEqualsIgnoreOrderMatcher(1))
 
     when:
     def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
 
     then:
-    !mismatches.empty
-    mismatches*.mismatch == ['Expected "bad" (JsonPrimitive) to be the same type as 200 (JsonPrimitive)']
-    mismatches*.path == ['$.3']
+    mismatches.empty
 
     where:
     actualBody = OptionalBody.body('[200, 100, 300, "bad"]'.bytes)
-    expectedBody = OptionalBody.body('[200]'.bytes)
+    expectedBody = OptionalBody.body('[100]'.bytes)
   }
 
-  def 'matching json bodies - return equality mismatch - with ignore-order and min-type matching'() {
+  def 'matching json bodies - return equality mismatch - with ignore-order min-equals matching'() {
     given:
     matchers.addCategory('body')
-        .addRule('$', IgnoreOrderMatcher.INSTANCE)
-        .addRule('$[0]', EqualsMatcher.INSTANCE)
-        .addRule('$', new MinTypeMatcher(1))
+      .addRule('$', new MinEqualsIgnoreOrderMatcher(1))
 
     when:
     def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
 
     then:
     !mismatches.empty
-    mismatches*.mismatch == [
-        'Expected [200,100,300,400] to equal [50] ignoring order of elements',
-        'Expected ignore-order match of [50] and [200, 100, 300, 400]' // which is expected and actual here?
-        // this probably shouldn't return two mismatches for the same thing
-    ]
-    mismatches*.path == ['$', '$']
+    mismatches*.mismatch == ['Expected [50] to equal [200, 100, 300, 400] ignoring order of elements']
+    mismatches*.path == ['$']
+
+    where:
+    actualBody = OptionalBody.body('[200, 100, 300, 400]'.bytes)
+    expectedBody = OptionalBody.body('[50]'.bytes)
+
     /*
     Should we have a more robust error message which explains the causes, such as?
 
@@ -492,11 +483,11 @@ class JsonBodyMatcherSpec extends Specification {
       - Expected 300 to equal 50
     - 50 does not match 400 because:
       - Expected 400 to equal 50
-     */
 
-    where:
-    actualBody = OptionalBody.body('[200, 100, 300, 400]'.bytes)
-    expectedBody = OptionalBody.body('[50]'.bytes)
+    JKS: I changed the message to be of the form Expected <expected> to equal <actual>.
+    The error message you suggest is more detailed.  However, I'm not sure it's necessary.
+     We can discuss if you'd like.
+     */
   }
 
   def 'matching json bodies - return a mismatches - with ignore-order set on another list'() {
@@ -526,19 +517,19 @@ class JsonBodyMatcherSpec extends Specification {
     def actualBody = OptionalBody.body(actual.bytes)
     def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-            .addRule('$', IgnoreOrderMatcher.INSTANCE)
+            .addRule('$', new MinEqualsIgnoreOrderMatcher(min))
 
     expect:
     matcher.matchBody(expectedBody, actualBody, true, matchers).empty == matches
 
     where:
-    expected                    | actual                           | matches
-    '[100, 100]'                | '[100, 100, 400]'                | true
-    '[100, 100]'                | '[100, 100, 100, 400]'           | true
-    '[100, 100]'                | '[100, 200, 400]'                | false // only one 100 in actual
-    '[100, 100, 200]'           | '[100, 200, 100, 400]'           | true
-    '[100, 100, 200, 200, 300]' | '[100, 300, 200, 100, 200, 400]' | true
-    '[100, 100, 200, 200, 300]' | '[100, 300, 300, 100, 200, 400]' | false // only one 200 in actual
+    expected                    | actual                           | matches | min
+    '[100, 100]'                | '[100, 100, 400]'                | true    | 2
+    '[100, 100]'                | '[100, 100, 100, 400]'           | true    | 2
+    '[100, 100]'                | '[100, 200, 400]'                | false   | 2 // only one 100 in actual
+    '[100, 100, 200]'           | '[100, 200, 100, 400]'           | true    | 3
+    '[100, 100, 200, 200, 300]' | '[100, 300, 200, 100, 200, 400]' | true    | 5
+    '[100, 100, 200, 200, 300]' | '[100, 300, 300, 100, 200, 400]' | false   | 5 // only one 200 in actual
   }
 
   @Unroll
@@ -604,33 +595,36 @@ class JsonBodyMatcherSpec extends Specification {
 
     where:
     actual                                                    | matches
-    '[{"id":"b", "status":"up"},{"id":"b", "status":"down"}]' | true  // expected[0]==actual[0] & expected[1]==actual[0|1]
-    '[{"id":"a", "status":"up"},{"id":"b", "status":"down"}]' | true  // expected[0]==actual[0] & expected[1]==actual[1]
-    '[{"id":"a", "status":"up"},{"id":"b", "status":"up"}]'   | true  // expected[0]==actual[0] & expected[1]==actual[1]
-    '[{"id":"b", "status":"down"},{"id":"c", "status":"up"}]' | false // expected[0] no match & expected[1]==actual[0|1]
-    '[{"id":"b", "status":"up"},{"id":"c", "status":"up"}]'   | false // expected[0|1]==actual[0], no unique for all expected
+    '[{"id":"b", "status":"up"},{"id":"b", "status":"down"}]' | true  // expct[0]==actl[0] & expct[1]==actl[0|1]
+    '[{"id":"a", "status":"up"},{"id":"b", "status":"down"}]' | true  // expct[0]==actl[0] & expct[1]==actl[1]
+    '[{"id":"a", "status":"up"},{"id":"b", "status":"up"}]'   | true  // expct[0]==actl[0] & expct[1]==actl[1]
+    '[{"id":"b", "status":"down"},{"id":"c", "status":"up"}]' | false // expct[0] no match & expct[1]==actl[1]
+// I don't feel this test should fail - let's discuss if you disagree
+//    '[{"id":"b", "status":"up"},{"id":"c", "status":"up"}]'   | false // expct[0|1]==actl[0], no unique for all expct
+    '[{"id":"b", "status":"up"},{"id":"c", "status":"up"}]'   | true  // expct[0]==actl[0] & expct[1]==actl[1]
+    '[{"id":"c", "status":"up"},{"id":"b", "status":"up"}]'   | true  // expct[0]==actl[1] & expct[1]==actl[0]
   }
 
   def 'matching json bodies - returns a mismatch - with ignore-order - and elements without unique ids'() {
     given:
+    def expected = '[{"id":"a","status":"up"}, {"id":"b","status":"down"}]'
+    def actual = '[{"id":"c","status":"down"}, {"id":"b","status":"down"}]'
+    def expectedBody = OptionalBody.body(expected.bytes)
+    def actualBody = OptionalBody.body(actual.bytes)
     matchers.addCategory('body')
         .addRule('$', IgnoreOrderMatcher.INSTANCE)
         .addRule('$[0].id', new RegexMatcher('a|b'))
         .addRule('$[0].status', EqualsMatcher.INSTANCE)
         .addRule('$[1].id', new RegexMatcher('b|c'))
         .addRule('$[1].status', new RegexMatcher('up|down'))
-    def expectedBody = OptionalBody.body('[{"id":"a","status":"up"},{"id":"b","status":"down"}]'.bytes)
-    def actualBody = OptionalBody.body('[{"id":"c","status":"down"},{"id":"b","status":"down"}]'.bytes)
 
     when:
     def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
 
     then:
-    mismatches*.mismatch == [
-        'Expected ignore-order match of [{"id":"a","status":"up"}, ' +
-            '{"id":"b","status":"down"}] and [{"id":"c","status":"down"}, {"id":"b","status":"down"}]'
-        // unclear which is expected and actual here?
-    ]
+    mismatches*.mismatch == ["Expected $expected to equal $actual ignoring order of elements"]
+    mismatches*.path == ['$']
+
     /*
     Should we have a more robust error message which explains the causes, such as?
 
@@ -640,8 +634,10 @@ class JsonBodyMatcherSpec extends Specification {
       - Expected "down" to equal "up"
     - {"id":"a","status":"up"} does not match {"id":"b","status":"down"} because:
       - Expected "down" to equal "up"
-    */
-    mismatches*.path == ['$']
+
+    JKS: I changed the message to be of the form Expected <expected> to equal <actual>.
+    The error message you suggest is more detailed.
+   */
   }
 
 }

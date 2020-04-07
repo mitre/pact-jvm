@@ -142,6 +142,30 @@ object IgnoreOrderMatcher : MatchingRule {
   override fun toMap(spec: PactSpecVersion) = toMap()
 }
 
+/**
+ * Ignore order matching with a maximum size
+ */
+data class MaxEqualsIgnoreOrderMatcher(val max: Int) : MatchingRule {
+  override fun toMap() = mapOf("match" to "ignore-order", "max" to max)
+  override fun toMap(spec: PactSpecVersion) = toMap()
+}
+
+/**
+ * Ignore order matcher with a minimum size and maximum size
+ */
+data class MinMaxEqualsIgnoreOrderMatcher(val min: Int, val max: Int) : MatchingRule {
+  override fun toMap() = mapOf("match" to "ignore-order", "min" to min, "max" to max)
+  override fun toMap(spec: PactSpecVersion) = toMap()
+}
+
+/**
+ * Ignore order matcher with a minimum size
+ */
+data class MinEqualsIgnoreOrderMatcher(val min: Int) : MatchingRule {
+  override fun toMap() = mapOf("match" to "ignore-order", "min" to min)
+  override fun toMap(spec: PactSpecVersion) = toMap()
+}
+
 data class MatchingRuleGroup @JvmOverloads constructor(
   val rules: MutableList<MatchingRule> = mutableListOf(),
   val ruleLogic: RuleLogic = RuleLogic.AND
@@ -232,7 +256,17 @@ data class MatchingRuleGroup @JvmOverloads constructor(
             if (map.containsKey(DATE)) DateMatcher(map[DATE].toString())
             else DateMatcher()
           "values" -> ValuesMatcher
-          "ignore-order" -> IgnoreOrderMatcher
+          "ignore-order" -> {
+            if (map.containsKey(MIN) && map.containsKey(MAX)) {
+              MinMaxEqualsIgnoreOrderMatcher(mapEntryToInt(map, MIN), mapEntryToInt(map, MAX))
+            } else if (map.containsKey(MIN)) {
+              MinEqualsIgnoreOrderMatcher(mapEntryToInt(map, MIN))
+            } else if (map.containsKey(MAX)) {
+              MaxEqualsIgnoreOrderMatcher(mapEntryToInt(map, MAX))
+            } else {
+              IgnoreOrderMatcher
+            }
+          }
           else -> {
             logger.warn { "Unrecognised matcher ${map[MATCH]}, defaulting to equality matching" }
             EqualsMatcher
