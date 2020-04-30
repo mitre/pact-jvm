@@ -1289,7 +1289,7 @@ public class PactDslJsonBody extends DslPart {
      *  @param name field name
      */
     public PactDslJsonBody unorderedArrayMatcher(String name) {
-        matchers.addRule(matcherKey(name), IgnoreOrderMatcher.INSTANCE);
+        matchers.addRule(matcherKey(name), EqualsIgnoreOrderMatcher.INSTANCE);
         return this;
     }
 
@@ -1314,7 +1314,7 @@ public class PactDslJsonBody extends DslPart {
      */
     @Override
     public PactDslJsonBody unorderedArrayLike(String name, int numberExamples) {
-        matchers.addRule(matcherKey(name), IgnoreOrderMatcher.INSTANCE);
+        matchers.addRule(matcherKey(name), EqualsIgnoreOrderMatcher.INSTANCE);
         PactDslJsonArray parent = new PactDslJsonArray(matcherKey(name), "", this, true);
         parent.setNumberExamples(numberExamples);
         return new PactDslJsonBody(".", ".", parent);
@@ -1341,7 +1341,7 @@ public class PactDslJsonBody extends DslPart {
      * @param numberExamples number of examples to generate
      */
     public PactDslJsonBody unorderedArrayLike(String name, PactDslJsonRootValue value, int numberExamples) {
-        matchers.addRule(matcherKey(name), IgnoreOrderMatcher.INSTANCE);
+        matchers.addRule(matcherKey(name), EqualsIgnoreOrderMatcher.INSTANCE);
         PactDslJsonArray parent = new PactDslJsonArray(matcherKey(name), "", this, true);
         parent.setNumberExamples(numberExamples);
         parent.putObject(value);

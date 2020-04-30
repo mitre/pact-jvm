@@ -1,9 +1,27 @@
 package au.com.dius.pact.core.matchers
 
-import au.com.dius.pact.core.matchers.util.instanceMapOf
-import au.com.dius.pact.core.matchers.util.subsetOf
-import au.com.dius.pact.core.model.matchingrules.*
-import com.google.gson.*
+import au.com.dius.pact.core.model.matchingrules.DateMatcher
+import au.com.dius.pact.core.model.matchingrules.EqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.IncludeMatcher
+import au.com.dius.pact.core.model.matchingrules.MatchingRule
+import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup
+import au.com.dius.pact.core.model.matchingrules.MaxEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MaxTypeMatcher
+import au.com.dius.pact.core.model.matchingrules.MinEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MinMaxEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MinMaxTypeMatcher
+import au.com.dius.pact.core.model.matchingrules.MinTypeMatcher
+import au.com.dius.pact.core.model.matchingrules.NullMatcher
+import au.com.dius.pact.core.model.matchingrules.NumberTypeMatcher
+import au.com.dius.pact.core.model.matchingrules.RegexMatcher
+import au.com.dius.pact.core.model.matchingrules.RuleLogic
+import au.com.dius.pact.core.model.matchingrules.TimeMatcher
+import au.com.dius.pact.core.model.matchingrules.TimestampMatcher
+import au.com.dius.pact.core.model.matchingrules.TypeMatcher
+import com.google.gson.JsonArray
+import com.google.gson.JsonNull
+import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import mu.KotlinLogging
 import org.apache.commons.lang3.time.DateUtils
 import org.w3c.dom.Element
@@ -105,48 +123,24 @@ fun <M : Mismatch> domatch(
             matchMaxType(matcher.max, path, expected, actual, mismatchFn)
     is IncludeMatcher -> matchInclude(matcher.value, path, expected, actual, mismatchFn)
     is NullMatcher -> matchNull(path, actual, mismatchFn)
-    is IgnoreOrderMatcher -> matchIgnoringOrder(path, expected, actual, mismatchFn)
-    is MinEqualsIgnoreOrderMatcher -> matchMinEquals(matcher.min, path, expected, actual, mismatchFn)
-    is MaxEqualsIgnoreOrderMatcher -> matchMaxEquals(matcher.max, path, expected, actual, mismatchFn)
-    is MinMaxEqualsIgnoreOrderMatcher -> matchMinEquals(matcher.min, path, expected, actual, mismatchFn) +
-            matchMaxEquals(matcher.max, path, expected, actual, mismatchFn)
+    is EqualsIgnoreOrderMatcher -> matchEqualsIgnoreOrder(path, expected, actual, mismatchFn)
+    is MinEqualsIgnoreOrderMatcher -> matchMinEqualsIgnoreOrder(matcher.min, path, expected, actual, mismatchFn)
+    is MaxEqualsIgnoreOrderMatcher -> matchMaxEqualsIgnoreOrder(matcher.max, path, expected, actual, mismatchFn)
+    is MinMaxEqualsIgnoreOrderMatcher -> matchMinEqualsIgnoreOrder(matcher.min, path, expected, actual, mismatchFn) +
+            matchMaxEqualsIgnoreOrder(matcher.max, path, expected, actual, mismatchFn)
     else -> matchEquality(path, expected, actual, mismatchFn)
   }
 }
 
-fun <M : Mismatch> matchIgnoringOrder(
+fun <M : Mismatch> matchEqualsIgnoreOrder(
   path: List<String>,
   expected: Any?,
   actual: Any?,
   mismatchFactory: MismatchFactory<M>
 ): List<M> {
-  val matches = when {
-    actual == null && expected == null -> true
-    actual is JsonPrimitive && expected is JsonPrimitive -> {
-      logger.debug { "matchIgnoringOrder skipping primitive" }
-      true
-    }
-    actual is JsonArray && expected is JsonArray -> {
-      val actualMap = instanceMapOf(actual.map { it.toString() })
-      val expectedMap = instanceMapOf(expected.map { it.toString() })
-      when {
-        actualMap == expectedMap -> true
-        subsetOf(expectedMap, actualMap) -> true
-        expected.size() > actual.size() -> false
-        else -> {
-          val actualJsonObjects: List<JsonElement> = actual.filter { it is JsonElement }
-          val expectedJsonObjects: List<JsonElement> = expected.filter { it is JsonElement }
-          actualJsonObjects.isNotEmpty() || expectedJsonObjects.isNotEmpty()
-        }
-      }
-    }
-    else -> false
-  }
-  logger.debug { "comparing ${valueOf(expected)} to ${valueOf(actual)} ignoring order of elements at $path -> $matches" }
-  return if (matches) {
-    emptyList()
-  } else {
-    listOf(mismatchFactory.create(expected, actual, "Expected ${valueOf(expected)} to equal ${valueOf(actual)} ignoring order of elements", path))
+  return when {
+    actual is JsonArray && expected is JsonArray -> emptyList()
+    else -> matchEquality(path, expected, actual, mismatchFactory)
   }
 }
 
@@ -417,7 +411,7 @@ fun <M : Mismatch> matchMaxType(
   }
 }
 
-fun <M : Mismatch> matchMinEquals(
+fun <M : Mismatch> matchMinEqualsIgnoreOrder(
   min: Int,
   path: List<String>,
   expected: Any?,
@@ -448,7 +442,7 @@ fun <M : Mismatch> matchMinEquals(
   }
 }
 
-fun <M : Mismatch> matchMaxEquals(
+fun <M : Mismatch> matchMaxEqualsIgnoreOrder(
   max: Int,
   path: List<String>,
   expected: Any?,

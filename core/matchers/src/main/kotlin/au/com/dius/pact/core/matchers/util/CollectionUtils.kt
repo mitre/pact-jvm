@@ -30,26 +30,3 @@ fun <E> List<E>.padTo(size: Int, item: E): List<E> {
     return list
   }
 }
-
-/**
- * Returns a map of the list provided where the keys are the elements of
- * the list and the values are the number of instances each element occurs
- * [100, 100, 200, 200, 300] => {100=2, 200=2, 300=1}
- */
-fun instanceMapOf(list: List<Any?>): HashMap<Any?, Int> {
-  var result = HashMap<Any?, Int>()
-  println(list)
-  list.forEach {
-    result[it] = result.getOrDefault(it, 0) + 1
-  }
-  return result
-}
-
-/**
- * Returns true if all keys of expected represented in actual and
- * and all values less than or equally represented, otherwise false
- */
-fun subsetOf(expected: HashMap<Any?, Int>, actual: HashMap<Any?, Int>): Boolean {
-  return expected.all { (k, _) -> actual.containsKey(k) } &&
-          expected.all { (k, v) -> actual.getValue(k) >= v }
-}

@@ -1227,8 +1227,7 @@ public class PactDslJsonArray extends DslPart {
      *  Element that is an array where order is ignored
      */
     public PactDslJsonArray unorderedArrayMatcher() {
-//        matchers.addRule(rootPath + appendArrayIndex(0), IgnoreOrderMatcher.INSTANCE);
-        matchers.addRule(rootPath, IgnoreOrderMatcher.INSTANCE);
+        matchers.addRule(rootPath, EqualsIgnoreOrderMatcher.INSTANCE);
         return this;
     }
 
@@ -1256,7 +1255,7 @@ public class PactDslJsonArray extends DslPart {
      */
     @Override
     public PactDslJsonBody unorderedArrayLike(int numberExamples) {
-        matchers.addRule(rootPath + appendArrayIndex(1), IgnoreOrderMatcher.INSTANCE);
+        matchers.addRule(rootPath + appendArrayIndex(1), EqualsIgnoreOrderMatcher.INSTANCE);
         PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
         parent.setNumberExamples(numberExamples);
         return new PactDslJsonBody(".", "", parent);
@@ -1281,7 +1280,7 @@ public class PactDslJsonArray extends DslPart {
                     "example in the Pact provider implementation. See https://github.com/DiUS/pact-jvm/issues/546");
         }
 
-        matchers.addRule(rootPath + appendArrayIndex(1), IgnoreOrderMatcher.INSTANCE);
+        matchers.addRule(rootPath + appendArrayIndex(1), EqualsIgnoreOrderMatcher.INSTANCE);
         PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
         parent.setNumberExamples(numberExamples);
         parent.putObject(value);

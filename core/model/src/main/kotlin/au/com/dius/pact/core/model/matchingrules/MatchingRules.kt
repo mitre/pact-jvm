@@ -137,8 +137,15 @@ object ValuesMatcher : MatchingRule {
 /**
  * Matcher for ignoring order of elements in array
  */
-object IgnoreOrderMatcher : MatchingRule {
+object EqualsIgnoreOrderMatcher : MatchingRule {
   override fun toMap() = mapOf("match" to "ignore-order")
+  override fun toMap(spec: PactSpecVersion) = toMap()
+}
+/**
+ * Ignore order matcher with a minimum size
+ */
+data class MinEqualsIgnoreOrderMatcher(val min: Int) : MatchingRule {
+  override fun toMap() = mapOf("match" to "ignore-order", "min" to min)
   override fun toMap(spec: PactSpecVersion) = toMap()
 }
 
@@ -155,14 +162,6 @@ data class MaxEqualsIgnoreOrderMatcher(val max: Int) : MatchingRule {
  */
 data class MinMaxEqualsIgnoreOrderMatcher(val min: Int, val max: Int) : MatchingRule {
   override fun toMap() = mapOf("match" to "ignore-order", "min" to min, "max" to max)
-  override fun toMap(spec: PactSpecVersion) = toMap()
-}
-
-/**
- * Ignore order matcher with a minimum size
- */
-data class MinEqualsIgnoreOrderMatcher(val min: Int) : MatchingRule {
-  override fun toMap() = mapOf("match" to "ignore-order", "min" to min)
   override fun toMap(spec: PactSpecVersion) = toMap()
 }
 
@@ -264,7 +263,7 @@ data class MatchingRuleGroup @JvmOverloads constructor(
             } else if (map.containsKey(MAX)) {
               MaxEqualsIgnoreOrderMatcher(mapEntryToInt(map, MAX))
             } else {
-              IgnoreOrderMatcher
+              EqualsIgnoreOrderMatcher
             }
           }
           else -> {

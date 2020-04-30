@@ -37,32 +37,4 @@ class CollectionUtilsSpec extends Specification {
     [1]       | 3    | [1, 1, 1]
     [1, 2, 3] | 6    | [1, 2, 3, 1, 1, 1]
   }
-
-  @Unroll
-  def 'instanceMapOf test'() {
-    expect:
-    CollectionUtilsKt.instanceMapOf(list) == map
-
-    where:
-    list                           | map
-    [100, 100, 200, 200, 300]      | [100: 2, 200: 2, 300: 1]
-    [100, 300, 300, 100, 200, 400] | [100: 2, 200: 1, 300: 2, 400: 1]
-
-  }
-
-  @Unroll
-  def 'subsetOf test'() {
-    given:
-    def expectedMap = CollectionUtilsKt.instanceMapOf(expected)
-    def actualMap = CollectionUtilsKt.instanceMapOf(actual)
-
-    expect:
-    CollectionUtilsKt.subsetOf(expectedMap, actualMap) == result
-
-    where:
-    expected                  | actual                         | result
-    [100, 100]                | [100, 100, 400]                | true
-    [100, 100]                | [100, 100, 400, 400]           | true
-    [100, 100, 200, 200, 300] | [100, 300, 300, 100, 200, 400] | false
-  }
 }

@@ -3,7 +3,12 @@ package au.com.dius.pact.core.matchers
 import au.com.dius.pact.core.matchers.util.corresponds
 import au.com.dius.pact.core.matchers.util.tails
 import au.com.dius.pact.core.model.PathToken
-import au.com.dius.pact.core.model.matchingrules.*
+import au.com.dius.pact.core.model.matchingrules.EqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup
+import au.com.dius.pact.core.model.matchingrules.MatchingRules
+import au.com.dius.pact.core.model.matchingrules.MaxEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MinEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MinMaxEqualsIgnoreOrderMatcher
 import au.com.dius.pact.core.model.parsePath
 import mu.KLogging
 import java.util.Comparator
@@ -11,7 +16,6 @@ import java.util.function.Predicate
 
 object Matchers : KLogging() {
 
-  const val PACT_MATCHING_IGNORE_ORDER = "pact.matching.ignore-order"
   const val PACT_MATCHING_WILDCARD = "pact.matching.wildcard"
   private val intRegex = Regex("\\d+")
 
@@ -75,39 +79,32 @@ object Matchers : KLogging() {
     else false
 
   /**
-   * Determines if the one and only IgnoreOrderMatcher is defined on an array
+   * Uses concept from "Matchers.INSTANCE.matchesPath('$[*]', ['$', 'str']) == 0"
+   * to determine if an array star matcher is defined on the ancestor
    */
   @JvmStatic
-  fun ignoreOrderMatcherDefined(category: String, path: List<String>, matchers: MatchingRules?) =
-  if (matchers != null) {
-    val resolvedMatchers = matchers.rulesForCategory(category).filter(Predicate {
-      // filter on paths that equal length of current path
-      matchesPath(it, path) == path.size
-    })
-      resolvedMatchers.matchingRules.values.any { value -> value.rules.contains(IgnoreOrderMatcher) }
+  fun isArrayStarMatcherDefined(path: List<String>, category: String, matchers: MatchingRules?) =
+    if (matchers != null) {
+      val resolvedMatchers = matchers.rulesForCategory(category).filter(Predicate {
+        matchesPath(it, path) == 0
+      })
+      resolvedMatchers.matchingRules.isNotEmpty()
     } else false
 
   /**
-   * Determines if any ignore-order matcher is defined on an array
+   * Determines if any ignore-order matcher is defined for path or ancestor of path.
    */
   @JvmStatic
-  fun oneOfIgnoreOrderMatchersDefined(category: String, path: List<String>, matchers: MatchingRules?) =
+  fun isEqualsIgnoreOrderMatcherDefined(path: List<String>, category: String, matchers: MatchingRules?) =
     if (matchers != null) {
-      val resolvedMatchers = matchers.rulesForCategory(category)
-      resolvedMatchers.matchingRules.values.any { value -> value.rules.any {
-        it is IgnoreOrderMatcher ||
+      val matcherDef = selectBestMatcher(matchers, category, path)
+      matcherDef.rules.any {
+        it is EqualsIgnoreOrderMatcher ||
         it is MinEqualsIgnoreOrderMatcher ||
         it is MaxEqualsIgnoreOrderMatcher ||
-        it is MinMaxEqualsIgnoreOrderMatcher }
+        it is MinMaxEqualsIgnoreOrderMatcher
       }
     } else false
-
-  /**
-   * If ignore-order matching logic is enabled (where array contents can be in any order)
-   * TODO possibly remove this function
-   */
-  @JvmStatic
-  fun ignoreOrderMatchingEnabled(): Boolean = System.getProperty(PACT_MATCHING_IGNORE_ORDER)?.trim() == "true"
 
   /**
    * Determines if a matcher of the form '.*' exists for the path
