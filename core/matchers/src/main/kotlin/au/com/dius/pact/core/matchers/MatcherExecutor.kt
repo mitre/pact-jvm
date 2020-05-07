@@ -138,9 +138,31 @@ fun <M : Mismatch> matchEqualsIgnoreOrder(
   actual: Any?,
   mismatchFactory: MismatchFactory<M>
 ): List<M> {
-  return when {
-    actual is JsonArray && expected is JsonArray -> emptyList()
-    else -> matchEquality(path, expected, actual, mismatchFactory)
+  logger.debug { "comparing ${valueOf(actual)} to ${valueOf(expected)} with ignore-order at $path" }
+  return if (actual is JsonArray && expected is JsonArray) {
+    matchEqualsIgnoreOrder(path, expected, actual, expected.size(), actual.size(), mismatchFactory)
+  } else if (actual is List<*> && expected is List<*>) {
+    matchEqualsIgnoreOrder(path, expected, actual, expected.size, actual.size, mismatchFactory)
+  } else if (actual is Element && expected is Element) {
+    matchEqualsIgnoreOrder(path, expected, actual, expected.childNodes.length, actual.childNodes.length, mismatchFactory)
+  } else {
+    matchEquality(path, expected, actual, mismatchFactory)
+  }
+}
+
+fun <M : Mismatch> matchEqualsIgnoreOrder(
+  path: List<String>,
+  expected: Any?,
+  actual: Any?,
+  expectedSize: Int,
+  actualSize: Int,
+  mismatchFactory: MismatchFactory<M>
+): List<M> {
+  return if (expectedSize == actualSize) {
+    emptyList()
+  } else {
+    listOf(mismatchFactory.create(expected, actual,
+      "Expected ${valueOf(actual)} to have $expectedSize elements", path))
   }
 }
 

@@ -363,39 +363,61 @@ class JsonBodyMatcherSpec extends Specification {
 
     then:
     mismatches.size() == 1
-    mismatches*.mismatch == ["Expected $missing but was missing"]
+    // @asteffey - update error message based on change to MatcherExecutor
+    mismatches*.mismatch == ["Expected $expected to equal $actual ignoring order of elements"]
     mismatches*.path == ['$']
 
     where:
-    expected                                    | actual                            | missing
-    '[1,2,3,4]'                                 | '[2,3,1]'                         | '4'
-    '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]' | '[{"i":"b"},{"i":"a"},{"i":"c"}]' | '{"i":"d"}'
+    expected                            | actual                              | missing
+    '[1, 2, 3, 4]'                      | '[2, 3, 1, 5]'                      | '4'
+    '[{"i":"a"}, {"i":"b"}, {"i":"c"}]' | '[{"i":"b"}, {"i":"a"}, {"i":"d"}]' | '{"i":"c"}'
   }
 
+  // @asteffey - exercise EqualsIgnoreOrderMatcher expecting actual to have same size
   @Unroll
-  def 'matching json bodies - with max-equals-ignore-order - return a mismatch when actual has extra elements'() {
+  def 'matching json bodies - return a mismatch - with ignore-order - when actual has extra elements'() {
     given:
-    def expectedSize = 3
     def actualBody = OptionalBody.body(actual.bytes)
     def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-      .addRule('$', new MaxEqualsIgnoreOrderMatcher(expectedSize))
+      .addRule('$', EqualsIgnoreOrderMatcher.INSTANCE)
 
     when:
     def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
 
     then:
     !mismatches.empty
-    mismatches*.mismatch == ["Expected $actual to have maximum $expectedSize"]
+    mismatches*.mismatch == ["Expected $actual to have 3 elements"]
     mismatches*.path == ['$']
 
     where:
     expected                          | actual
     '[1,2,3]'                         | '[1,2,3,4]'
     '[{"i":"a"},{"i":"b"},{"i":"c"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]'
-    '[3,2,1]'                         | '[4,2,1,3]'
-    '[{"i":"c"},{"i":"b"},{"i":"a"}]' | '[{"i":"d"},{"i":"b"},{"i":"a"},{"i":"c"}]'
+  }
 
+  // @asteffey - create a MaxEqualsIgnoreOrderMatcher as test above was changed to EqualsIgnoreOrderMatcher
+  @Unroll
+  def 'matching json bodies - with max-equals-ignore-order - return a mismatch when actual has extra elements'() {
+    given:
+    def maxSize = 3
+    def actualBody = OptionalBody.body(actual.bytes)
+    def expectedBody = OptionalBody.body(expected.bytes)
+    matchers.addCategory('body')
+      .addRule('$', new MaxEqualsIgnoreOrderMatcher(maxSize))
+
+    when:
+    def mismatches = matcher.matchBody(expectedBody, actualBody, true, matchers)
+
+    then:
+    !mismatches.empty
+    mismatches*.mismatch == ["Expected $actual to have maximum $maxSize"]
+    mismatches*.path == ['$']
+
+    where:
+    expected                | actual                                      | actualSize
+    '[1,2]'                 | '[1,2,3,4,5,6]'                             | 6
+    '[{"i":"a"},{"i":"b"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]' | 4
   }
 
   @Unroll
@@ -522,7 +544,7 @@ class JsonBodyMatcherSpec extends Specification {
     def actualBody = OptionalBody.body(actual.bytes)
     def expectedBody = OptionalBody.body(expected.bytes)
     matchers.addCategory('body')
-            .addRule('$', EqualsIgnoreOrderMatcher.INSTANCE)
+            .addRule('$', new MinEqualsIgnoreOrderMatcher(2))
 
     expect:
     matcher.matchBody(expectedBody, actualBody, true, matchers).empty == matches
