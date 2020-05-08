@@ -368,9 +368,9 @@ class JsonBodyMatcherSpec extends Specification {
     mismatches*.path == ['$']
 
     where:
-    expected                            | actual                              | missing
-    '[1, 2, 3, 4]'                      | '[2, 3, 1, 5]'                      | '4'
-    '[{"i":"a"}, {"i":"b"}, {"i":"c"}]' | '[{"i":"b"}, {"i":"a"}, {"i":"d"}]' | '{"i":"c"}'
+    expected                            | actual
+    '[1, 2, 3, 4]'                      | '[2, 3, 1, 5]'
+    '[{"i":"a"}, {"i":"b"}, {"i":"c"}]' | '[{"i":"b"}, {"i":"a"}, {"i":"d"}]'
   }
 
   // @asteffey - exercise EqualsIgnoreOrderMatcher expecting actual to have same size
@@ -415,9 +415,9 @@ class JsonBodyMatcherSpec extends Specification {
     mismatches*.path == ['$']
 
     where:
-    expected                | actual                                      | actualSize
-    '[1,2]'                 | '[1,2,3,4,5,6]'                             | 6
-    '[{"i":"a"},{"i":"b"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]' | 4
+    expected                | actual
+    '[1,2]'                 | '[1,2,3,4,5,6]'
+    '[{"i":"a"},{"i":"b"}]' | '[{"i":"a"},{"i":"b"},{"i":"c"},{"i":"d"}]'
   }
 
   @Unroll
