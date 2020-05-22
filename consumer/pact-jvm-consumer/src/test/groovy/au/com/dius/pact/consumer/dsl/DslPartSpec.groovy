@@ -80,6 +80,18 @@ class DslPartSpec extends Specification {
     PactDslJsonArray eachArrayLike(int numberExamples) { null }
 
     @Override
+    PactDslJsonArray unorderedEachArrayLike(String name) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayLike() { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayLike(String name, int numberExamples) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayLike(int numberExamples) { null }
+
+    @Override
     PactDslJsonArray eachArrayWithMaxLike(String name, Integer size) { null }
 
     @Override
@@ -136,6 +148,46 @@ class DslPartSpec extends Specification {
     }
 
     @Override
+    PactDslJsonBody unorderedMinArrayLike(String name, Integer size) { null }
+
+    @Override
+    PactDslJsonBody unorderedMinArrayLike(Integer size) { null }
+
+    @Override
+    PactDslJsonBody unorderedMinArrayLike(String name, Integer size, int numberExamples) { null }
+
+    @Override
+    PactDslJsonBody unorderedMinArrayLike(Integer size, int numberExamples) { null }
+
+    @Override
+    PactDslJsonBody unorderedMaxArrayLike(String name, Integer size) { null }
+
+    @Override
+    PactDslJsonBody unorderedMaxArrayLike(Integer size) { null }
+
+    @Override
+    PactDslJsonBody unorderedMaxArrayLike(String name, Integer size, int numberExamples) { null }
+
+    @Override
+    PactDslJsonBody unorderedMaxArrayLike(Integer size, int numberExamples) { null }
+
+    @Override
+    PactDslJsonBody unorderedMinMaxArrayLike(String name, Integer minSize, Integer maxSize) { null }
+
+    @Override
+    PactDslJsonBody unorderedMinMaxArrayLike(Integer minSize, Integer maxSize) { null }
+
+    @Override
+    PactDslJsonBody unorderedMinMaxArrayLike(String name, Integer minSize, Integer maxSize, int numberExamples) {
+      null
+    }
+
+    @Override
+    PactDslJsonBody unorderedMinMaxArrayLike(Integer minSize, Integer maxSize, int numberExamples) {
+      null
+    }
+
+    @Override
     PactDslJsonArray eachArrayWithMinMaxLike(String name, Integer minSize, Integer maxSize) {
       null
     }
@@ -156,16 +208,57 @@ class DslPartSpec extends Specification {
     }
 
     @Override
-    PactDslJsonBody unorderedArrayLike(String name) { null }
+    PactDslJsonArray unorderedEachArrayWithMaxLike(String name, Integer size) { null }
 
     @Override
-    PactDslJsonBody unorderedArrayLike() { null }
+    PactDslJsonArray unorderedEachArrayWithMaxLike(Integer size) { null }
 
     @Override
-    PactDslJsonBody unorderedArrayLike(String name, int numberExamples) { null }
+    PactDslJsonArray unorderedEachArrayWithMaxLike(String name, int numberExamples, Integer size) { null }
 
     @Override
-    PactDslJsonBody unorderedArrayLike(int numberExamples) { null }
+    PactDslJsonArray unorderedEachArrayWithMaxLike(int numberExamples, Integer size) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinLike(String name, Integer size) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinLike(Integer size) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinLike(String name, int numberExamples, Integer size) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinLike(int numberExamples, Integer size) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinMaxLike(String name, Integer minSize, Integer maxSize) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinMaxLike(Integer minSize, Integer maxSize) { null }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinMaxLike(String name, int numberExamples,
+                                                      Integer minSize, Integer maxSize) {
+      null
+    }
+
+    @Override
+    PactDslJsonArray unorderedEachArrayWithMinMaxLike(int numberExamples, Integer minSize, Integer maxSize) {
+      null
+    }
+
+    @Override
+    PactDslJsonBody unorderedEachLike(String name) { null }
+
+    @Override
+    PactDslJsonBody unorderedEachLike() { null }
+
+    @Override
+    PactDslJsonBody unorderedEachLike(String name, int numberExamples) { null }
+
+    @Override
+    PactDslJsonBody unorderedEachLike(int numberExamples) { null }
   }
 
   @Unroll

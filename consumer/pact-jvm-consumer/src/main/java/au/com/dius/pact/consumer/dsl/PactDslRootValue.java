@@ -230,7 +230,7 @@ public class PactDslRootValue extends DslPart {
    * @deprecated Use PactDslJsonArray for arrays
    */
   @Override
-  public PactDslJsonBody unorderedArrayLike(String name) {
+  public PactDslJsonBody unorderedMinArrayLike(String name, Integer size) {
     throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
   }
 
@@ -238,7 +238,7 @@ public class PactDslRootValue extends DslPart {
    * @deprecated Use PactDslJsonArray for arrays
    */
   @Override
-  public PactDslJsonBody unorderedArrayLike(int numberExamples) {
+  public PactDslJsonBody unorderedMinArrayLike(Integer size) {
     throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
   }
 
@@ -246,7 +246,7 @@ public class PactDslRootValue extends DslPart {
    * @deprecated Use PactDslJsonArray for arrays
    */
   @Override
-  public PactDslJsonBody unorderedArrayLike(String name, int numberExamples) {
+  public PactDslJsonBody unorderedMinArrayLike(String name, Integer size, int numberExamples) {
     throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
   }
 
@@ -254,7 +254,103 @@ public class PactDslRootValue extends DslPart {
    * @deprecated Use PactDslJsonArray for arrays
    */
   @Override
-  public PactDslJsonBody unorderedArrayLike() {
+  public PactDslJsonBody unorderedMinArrayLike(Integer size, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMaxArrayLike(String name, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMaxArrayLike(Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMaxArrayLike(String name, Integer size, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMaxArrayLike(Integer size, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMinMaxArrayLike(String name, Integer minSize, Integer maxSize) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMinMaxArrayLike(Integer minSize, Integer maxSize) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMinMaxArrayLike(String name, Integer minSize, Integer maxSize, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedMinMaxArrayLike(Integer minSize, Integer maxSize, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedEachLike(String name) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedEachLike(int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedEachLike(String name, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonBody unorderedEachLike() {
     throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
   }
 
@@ -659,6 +755,38 @@ public class PactDslRootValue extends DslPart {
    * @deprecated Use PactDslJsonArray for arrays
    */
   @Override
+  public PactDslJsonArray unorderedEachArrayLike(String name) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayLike() {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayLike(String name, int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayLike(int numberExamples) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
   public PactDslJsonArray eachArrayWithMaxLike(String name, Integer size) {
     throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
   }
@@ -748,6 +876,99 @@ public class PactDslRootValue extends DslPart {
    */
   @Override
   public PactDslJsonArray eachArrayWithMinMaxLike(int numberExamples, Integer minSize, Integer maxSize) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMaxLike(String name, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMaxLike(Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMaxLike(String name, int numberExamples, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMaxLike(int numberExamples, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinLike(String name, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinLike(Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinLike(String name, int numberExamples, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinLike(int numberExamples, Integer size) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinMaxLike(String name, Integer minSize, Integer maxSize) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinMaxLike(Integer minSize, Integer maxSize) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinMaxLike(String name, int numberExamples, Integer minSize, Integer maxSize) {
+    throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
+  }
+
+  /**
+   * @deprecated Use PactDslJsonArray for arrays
+   */
+  @Override
+  public PactDslJsonArray unorderedEachArrayWithMinMaxLike(int numberExamples, Integer minSize, Integer maxSize) {
     throw new UnsupportedOperationException(USE_PACT_DSL_JSON_ARRAY_FOR_ARRAYS);
   }
 

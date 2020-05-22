@@ -215,6 +215,86 @@ public class PactDslJsonArray extends DslPart {
       return new PactDslJsonBody(".", "", parent);
     }
 
+    @Override
+    public PactDslJsonBody unorderedMinArrayLike(String name, Integer size) {
+        throw new UnsupportedOperationException("use the unorderedMinArrayLike(Integer size) form");
+    }
+
+    /**
+     * Element that is an array with a minimum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size minimum size of the array
+     */
+    @Override
+    public PactDslJsonBody unorderedMinArrayLike(Integer size) {
+        return unorderedMinArrayLike(size, size);
+    }
+
+    @Override
+    public PactDslJsonBody unorderedMinArrayLike(String name, Integer size, int numberExamples) {
+        throw new UnsupportedOperationException("use the unorderedMinArrayLike(Integer size, int numberExamples) form");
+    }
+
+    /**
+     * Element that is an array with a minimum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size           minimum size of the array
+     * @param numberExamples number of examples to generate
+     */
+    @Override
+    public PactDslJsonBody unorderedMinArrayLike(Integer size, int numberExamples) {
+        if (numberExamples < size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, size));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMinEqualsIgnoreOrder(size));
+        PactDslJsonArray parent = new PactDslJsonArray("", "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonBody(".", "", parent);
+    }
+
+    @Override
+    public PactDslJsonBody unorderedMaxArrayLike(String name, Integer size) {
+        throw new UnsupportedOperationException("use the unorderedMaxArrayLike(Integer size) form");
+    }
+
+    /**
+     * Element that is an array with a maximum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size maximum size of the array
+     */
+    @Override
+    public PactDslJsonBody unorderedMaxArrayLike(Integer size) {
+        return unorderedMaxArrayLike(size, 1);
+    }
+
+    @Override
+    public PactDslJsonBody unorderedMaxArrayLike(String name, Integer size, int numberExamples) {
+        throw new UnsupportedOperationException("use the unorderedMaxArrayLike(Integer size, int numberExamples) form");
+    }
+
+    /**
+     * Element that is an array with a maximum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size           maximum size of the array
+     * @param numberExamples number of examples to generate
+     */
+    @Override
+    public PactDslJsonBody unorderedMaxArrayLike(Integer size, int numberExamples) {
+        if (numberExamples > size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, size));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMaxEqualsIgnoreOrder(size));
+        PactDslJsonArray parent = new PactDslJsonArray("", "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonBody(".", "", parent);
+    }
+
     protected void putObject(DslPart object) {
       for(String matcherName: object.matchers.getMatchingRules().keySet()) {
           matchers.setRules(rootPath + appendArrayIndex(1) + matcherName,
@@ -916,6 +996,189 @@ public class PactDslJsonArray extends DslPart {
     return parent;
   }
 
+    /**
+     * Array with a minimum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size minimum size
+     */
+    public static PactDslJsonBody unorderedArrayMinLike(int size) {
+        return unorderedArrayMinLike(size, size);
+    }
+
+    /**
+     * Array with a minimum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size           minimum size
+     * @param numberExamples number of examples to generate
+     */
+    public static PactDslJsonBody unorderedArrayMinLike(int size, int numberExamples) {
+        if (numberExamples < size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, size));
+        }
+        PactDslJsonArray parent = new PactDslJsonArray("", "", null, true);
+        parent.setNumberExamples(numberExamples);
+        parent.matchers.addRule("", parent.matchMinEqualsIgnoreOrder(size));
+        return new PactDslJsonBody(".", "", parent);
+    }
+
+    /**
+     * Root level array with minimum size where matcher ignores order of elements and
+     * each item must match the provided matcher
+     *
+     * @param size minimum size
+     */
+    public static PactDslJsonArray unorderedArrayMinLike(int size, PactDslJsonRootValue value) {
+        return unorderedArrayMinLike(size, size, value);
+    }
+
+    /**
+     * Root level array with minimum size where matcher ignores order of elements and
+     * each item must match the provided matcher
+     *
+     * @param size           minimum size
+     * @param numberExamples Number of examples to generate
+     */
+    public static PactDslJsonArray unorderedArrayMinLike(int size, int numberExamples, PactDslJsonRootValue value) {
+        if (numberExamples < size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, size));
+        }
+        PactDslJsonArray parent = new PactDslJsonArray("", "", null, true);
+        parent.setNumberExamples(numberExamples);
+        parent.matchers.addRule("", parent.matchMinEqualsIgnoreOrder(size));
+        parent.putObject(value);
+        return parent;
+    }
+
+    /**
+     * Array with a maximum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size maximum size
+     */
+    public static PactDslJsonBody unorderedArrayMaxLike(int size) {
+        return unorderedArrayMaxLike(size, 1);
+    }
+
+    /**
+     * Array with a maximum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param size           maximum size
+     * @param numberExamples Number of examples to generate
+     */
+    public static PactDslJsonBody unorderedArrayMaxLike(int size, int numberExamples) {
+        if (numberExamples > size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, size));
+        }
+        PactDslJsonArray parent = new PactDslJsonArray("", "", null, true);
+        parent.setNumberExamples(numberExamples);
+        parent.matchers.addRule("", parent.matchMaxEqualsIgnoreOrder(size));
+        return new PactDslJsonBody(".", "", parent);
+    }
+
+    /**
+     * Root level array with maximum size where matcher ignores order of elements and
+     * each item must match the provided matcher
+     *
+     * @param size maximum size
+     */
+    public static PactDslJsonArray unorderedArrayMaxLike(int size, PactDslJsonRootValue value) {
+        return unorderedArrayMaxLike(size, 1, value);
+    }
+
+    /**
+     * Root level array with maximum size where matcher ignores order of elements and
+     * each item must match the provided matcher
+     *
+     * @param size           maximum size
+     * @param numberExamples Number of examples to generate
+     */
+    public static PactDslJsonArray unorderedArrayMaxLike(int size, int numberExamples, PactDslJsonRootValue value) {
+        if (numberExamples > size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, size));
+        }
+        PactDslJsonArray parent = new PactDslJsonArray("", "", null, true);
+        parent.setNumberExamples(numberExamples);
+        parent.matchers.addRule("", parent.matchMaxEqualsIgnoreOrder(size));
+        parent.putObject(value);
+        return parent;
+    }
+
+    /**
+     * Array with a minimum and maximum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param minSize minimum size
+     * @param maxSize maximum size
+     */
+    public static PactDslJsonBody unorderedArrayMinMaxLike(int minSize, int maxSize) {
+        return unorderedArrayMinMaxLike(minSize, maxSize, minSize);
+    }
+
+    /**
+     * Array with a minimum and maximum size where matcher ignores order of elements and
+     * each item must match the following example
+     *
+     * @param minSize        minimum size
+     * @param maxSize        maximum size
+     * @param numberExamples Number of examples to generate
+     */
+    public static PactDslJsonBody unorderedArrayMinMaxLike(int minSize, int maxSize, int numberExamples) {
+        if (numberExamples < minSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, minSize));
+        } else if (numberExamples > maxSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, maxSize));
+        }
+        PactDslJsonArray parent = new PactDslJsonArray("", "", null, true);
+        parent.setNumberExamples(numberExamples);
+        parent.matchers.addRule("", parent.matchMinMaxEqualsIgnoreOrder(minSize, maxSize));
+        return new PactDslJsonBody(".", "", parent);
+    }
+
+    /**
+     * Root level array with minimum and maximum size where matcher ignores order of elements and
+     * each item must match the provided matcher
+     *
+     * @param minSize minimum size
+     * @param maxSize maximum size
+     */
+    public static PactDslJsonArray unorderedArrayMinMaxLike(int minSize, int maxSize, PactDslJsonRootValue value) {
+        return unorderedArrayMinMaxLike(minSize, maxSize, minSize, value);
+    }
+
+    /**
+     * Root level array with minimum and maximum size where matcher ignores order of elements and
+     * each item must match the provided matcher
+     *
+     * @param minSize        minimum size
+     * @param maxSize        maximum size
+     * @param numberExamples Number of examples to generate
+     */
+    public static PactDslJsonArray unorderedArrayMinMaxLike(int minSize, int maxSize, int numberExamples,
+                                                            PactDslJsonRootValue value) {
+        if (numberExamples < minSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, minSize));
+        }
+        if (numberExamples > maxSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, maxSize));
+        }
+        PactDslJsonArray parent = new PactDslJsonArray("", "", null, true);
+        parent.setNumberExamples(numberExamples);
+        parent.matchers.addRule("", parent.matchMinMaxEqualsIgnoreOrder(minSize, maxSize));
+        parent.putObject(value);
+        return parent;
+    }
+
   /**
    * Adds a null value to the list
    */
@@ -1015,6 +1278,83 @@ public class PactDslJsonArray extends DslPart {
     return new PactDslJsonArray("", "", parent);
   }
 
+    @Override
+    public PactDslJsonArray unorderedEachArrayLike(String name) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayLike() form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayLike(String name, int numberExamples) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayLike(numberExamples) form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayLike() {
+        return unorderedEachArrayLike(1);
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayLike(int numberExamples) {
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMinEqualsIgnoreOrder(0));
+        PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonArray("", "", parent);
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMaxLike(String name, Integer size) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayWithMaxLike() form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMaxLike(String name, int numberExamples, Integer size) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayWithMaxLike(numberExamples) form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMaxLike(Integer size) {
+        return unorderedEachArrayWithMaxLike(1, size);
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMaxLike(int numberExamples, Integer size) {
+        if (numberExamples > size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, size));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMaxEqualsIgnoreOrder(size));
+        PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonArray("", "", parent);
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinLike(String name, Integer size) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayWithMinLike() form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinLike(String name, int numberExamples, Integer size) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayWithMinLike(numberExamples) form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinLike(Integer size) {
+        return unorderedEachArrayWithMinLike(size, size);
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinLike(int numberExamples, Integer size) {
+        if (numberExamples < size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, size));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMinEqualsIgnoreOrder(size));
+        PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonArray("", "", parent);
+    }
+
   /**
    * Array of values that are not objects where each item must match the provided example
    * @param value Value to use to match each item
@@ -1094,6 +1434,68 @@ public class PactDslJsonArray extends DslPart {
     parent.putObject(value);
     return (PactDslJsonArray) parent.closeArray();
   }
+
+    /**
+     * Array of values with a minimum size that are not objects where matcher ignores order of elements and
+     * each item must match the provided example
+     *
+     * @param size  minimum size of the array
+     * @param value Value to use to match each item
+     */
+    public PactDslJsonArray unorderedMinArrayLike(Integer size, PactDslJsonRootValue value) {
+        return unorderedMinArrayLike(size, value, size);
+    }
+
+    /**
+     * Array of values with a minimum size that are not objects where matcher ignores order of elements and
+     * each item must match the provided example
+     *
+     * @param size           minimum size of the array
+     * @param value          Value to use to match each item
+     * @param numberExamples number of examples to generate
+     */
+    public PactDslJsonArray unorderedMinArrayLike(Integer size, PactDslJsonRootValue value, int numberExamples) {
+        if (numberExamples < size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, size));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMinEqualsIgnoreOrder(size));
+        PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
+        parent.setNumberExamples(numberExamples);
+        parent.putObject(value);
+        return (PactDslJsonArray) parent.closeArray();
+    }
+
+    /**
+     * Array of values with a maximum size that are not objects where matcher ignores order of elements and
+     * each item must match the provided example
+     *
+     * @param size  maximum size of the array
+     * @param value Value to use to match each item
+     */
+    public PactDslJsonArray unorderedMaxArrayLike(Integer size, PactDslJsonRootValue value) {
+        return unorderedMaxArrayLike(size, value, 1);
+    }
+
+    /**
+     * Array of values with a maximum size that are not objects where matcher ignores order of elements and
+     * each item must match the provided example
+     *
+     * @param size           maximum size of the array
+     * @param value          Value to use to match each item
+     * @param numberExamples number of examples to generate
+     */
+    public PactDslJsonArray unorderedMaxArrayLike(Integer size, PactDslJsonRootValue value, int numberExamples) {
+        if (numberExamples > size) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, size));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMaxEqualsIgnoreOrder(size));
+        PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
+        parent.setNumberExamples(numberExamples);
+        parent.putObject(value);
+        return (PactDslJsonArray) parent.closeArray();
+    }
 
   /**
    * List item that must include the provided string
@@ -1190,6 +1592,39 @@ public class PactDslJsonArray extends DslPart {
     return new PactDslJsonBody(".", "", parent);
   }
 
+    @Override
+    public PactDslJsonBody unorderedMinMaxArrayLike(String name, Integer minSize, Integer maxSize) {
+        throw new UnsupportedOperationException("use the unorderedMinMaxArrayLike(minSize, maxSize) form");
+    }
+
+    @Override
+    public PactDslJsonBody unorderedMinMaxArrayLike(Integer minSize, Integer maxSize) {
+        return unorderedMinMaxArrayLike(minSize, maxSize, minSize);
+    }
+
+    @Override
+    public PactDslJsonBody unorderedMinMaxArrayLike(String name, Integer minSize, Integer maxSize, int numberExamples) {
+        throw new UnsupportedOperationException("use the unorderedMinMaxArrayLike(minSize, maxSize, numberExamples) form");
+    }
+
+    @Override
+    public PactDslJsonBody unorderedMinMaxArrayLike(Integer minSize, Integer maxSize, int numberExamples) {
+        if (minSize > maxSize) {
+            throw new IllegalArgumentException(String.format("The minimum size of %d is greater than the maximum of %d",
+                    minSize, maxSize));
+        } else if (numberExamples < minSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, minSize));
+        } else if (numberExamples > maxSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, maxSize));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMinMaxEqualsIgnoreOrder(minSize, maxSize));
+        PactDslJsonArray parent = new PactDslJsonArray("", "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonBody(".", "", parent);
+    }
+
   @Override
   public PactDslJsonArray eachArrayWithMinMaxLike(String name, Integer minSize, Integer maxSize) {
     throw new UnsupportedOperationException("use the eachArrayWithMinMaxLike(minSize, maxSize) form");
@@ -1223,6 +1658,40 @@ public class PactDslJsonArray extends DslPart {
     return new PactDslJsonArray("", "", parent);
   }
 
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinMaxLike(String name, Integer minSize, Integer maxSize) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayWithMinMaxLike(minSize, maxSize) form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinMaxLike(Integer minSize, Integer maxSize) {
+        return unorderedEachArrayWithMinMaxLike(minSize, minSize, maxSize);
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinMaxLike(String name, int numberExamples, Integer minSize,
+                                                             Integer maxSize) {
+        throw new UnsupportedOperationException("use the unorderedEachArrayWithMinMaxLike(numberExamples, minSize, maxSize) form");
+    }
+
+    @Override
+    public PactDslJsonArray unorderedEachArrayWithMinMaxLike(int numberExamples, Integer minSize, Integer maxSize) {
+        if (minSize > maxSize) {
+            throw new IllegalArgumentException(String.format("The minimum size of %d is greater than the maximum of %d",
+                    minSize, maxSize));
+        } else if (numberExamples < minSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is less than the minimum size of %d",
+                    numberExamples, minSize));
+        } else if (numberExamples > maxSize) {
+            throw new IllegalArgumentException(String.format("Number of example %d is more than the maximum size of %d",
+                    numberExamples, maxSize));
+        }
+        matchers.addRule(rootPath + appendArrayIndex(1), matchMinMaxEqualsIgnoreOrder(minSize, maxSize));
+        PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
+        parent.setNumberExamples(numberExamples);
+        return new PactDslJsonArray("", "", parent);
+    }
+
     /**
      *  Element that is an array where order is ignored
      */
@@ -1232,21 +1701,21 @@ public class PactDslJsonArray extends DslPart {
     }
 
     @Override
-    public PactDslJsonBody unorderedArrayLike(String name) {
-        throw new UnsupportedOperationException("use the unorderedArrayLike() form");
+    public PactDslJsonBody unorderedEachLike(String name) {
+        throw new UnsupportedOperationException("use the unorderedEachLike() form");
     }
 
     @Override
-    public PactDslJsonBody unorderedArrayLike(String name, int numberExamples) {
-        throw new UnsupportedOperationException("use the unorderedArrayLike(numberExamples) form");
+    public PactDslJsonBody unorderedEachLike(String name, int numberExamples) {
+        throw new UnsupportedOperationException("use the unorderedEachLike(numberExamples) form");
     }
 
     /**
      * Element that is an array where order is ignored in the following example
      */
     @Override
-    public PactDslJsonBody unorderedArrayLike() {
-        return unorderedArrayLike(1);
+    public PactDslJsonBody unorderedEachLike() {
+        return unorderedEachLike(1);
     }
 
     /**
@@ -1254,7 +1723,7 @@ public class PactDslJsonArray extends DslPart {
      * @param numberExamples Number of examples to generate
      */
     @Override
-    public PactDslJsonBody unorderedArrayLike(int numberExamples) {
+    public PactDslJsonBody unorderedEachLike(int numberExamples) {
         matchers.addRule(rootPath + appendArrayIndex(1), EqualsIgnoreOrderMatcher.INSTANCE);
         PactDslJsonArray parent = new PactDslJsonArray(rootPath, "", this, true);
         parent.setNumberExamples(numberExamples);
@@ -1265,8 +1734,8 @@ public class PactDslJsonArray extends DslPart {
      * Array of values that are not objects where order is ignored in the provided example
      * @param value Value to use to match each item
      */
-    public PactDslJsonArray unorderedArrayLike(PactDslJsonRootValue value) {
-        return unorderedArrayLike(value, 1);
+    public PactDslJsonArray unorderedEachLike(PactDslJsonRootValue value) {
+        return unorderedEachLike(value, 1);
     }
 
     /**
@@ -1274,7 +1743,7 @@ public class PactDslJsonArray extends DslPart {
      * @param value Value to use to match each item
      * @param numberExamples number of examples to generate
      */
-    public PactDslJsonArray unorderedArrayLike(PactDslJsonRootValue value, int numberExamples) {
+    public PactDslJsonArray unorderedEachLike(PactDslJsonRootValue value, int numberExamples) {
         if (numberExamples == 0) {
             throw new IllegalArgumentException("Testing Zero examples is unsafe. Please make sure to provide at least one " +
                     "example in the Pact provider implementation. See https://github.com/DiUS/pact-jvm/issues/546");

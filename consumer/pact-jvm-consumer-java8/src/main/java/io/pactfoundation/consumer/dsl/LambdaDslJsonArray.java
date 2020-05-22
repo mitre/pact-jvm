@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 
 public class LambdaDslJsonArray {
 
-
     private final PactDslJsonArray pactArray;
 
     LambdaDslJsonArray(final PactDslJsonArray pactArray) {
@@ -398,6 +397,99 @@ public class LambdaDslJsonArray {
   }
 
     /**
+     * Element that is an array with a minimum size where order is ignored and each item must
+     * match the following example
+     *
+     * @param size minimum size of the array
+     */
+    public LambdaDslJsonArray unorderedMinArrayLike(Integer size, Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedMinArrayLike(size);
+        final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
+        nestedObject.accept(dslBody);
+        arrayLike.closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum size where order is ignored and each item must
+     * match the following example
+     *
+     * @param size           minimum size of the array
+     * @param numberExamples number of examples to generate
+     */
+    public LambdaDslJsonArray unorderedMinArrayLike(Integer size, int numberExamples,
+                                                    Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedMinArrayLike(size, numberExamples);
+        final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
+        nestedObject.accept(dslBody);
+        arrayLike.closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a maximum size where order is ignored and each item must
+     * match the following example
+     *
+     * @param size maximum size of the array
+     */
+    public LambdaDslJsonArray unorderedMaxArrayLike(Integer size, Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedMaxArrayLike(size);
+        final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
+        nestedObject.accept(dslBody);
+        arrayLike.closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a maximum size where order is ignored and each item must
+     * match the following example
+     *
+     * @param size           maximum size of the array
+     * @param numberExamples number of examples to generate
+     */
+    public LambdaDslJsonArray unorderedMaxArrayLike(Integer size, int numberExamples,
+                                                    Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedMaxArrayLike(size, numberExamples);
+        final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
+        nestedObject.accept(dslBody);
+        arrayLike.closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum and maximum size where order is ignored and each item must
+     * match the following example
+     *
+     * @param minSize minimum size of the array
+     * @param maxSize maximum size of the array
+     */
+    public LambdaDslJsonArray unorderedMinMaxArrayLike(Integer minSize, Integer maxSize,
+                                                       Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedMinMaxArrayLike(minSize, maxSize);
+        final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
+        nestedObject.accept(dslBody);
+        arrayLike.closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum and maximum size where order is ignored and each item must
+     * match the following example
+     *
+     * @param minSize        minimum size of the array
+     * @param maxSize        maximum size of the array
+     * @param numberExamples number of examples to generate
+     */
+    public LambdaDslJsonArray unorderedMinMaxArrayLike(Integer minSize, Integer maxSize, int numberExamples,
+                                                       Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedMinMaxArrayLike(minSize, maxSize, numberExamples);
+        final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
+        nestedObject.accept(dslBody);
+        arrayLike.closeArray();
+        return this;
+    }
+
+    /**
      * Adds a null value to the list
      */
     public LambdaDslJsonArray nullValue() {
@@ -473,6 +565,128 @@ public class LambdaDslJsonArray {
   }
 
     /**
+     * Element that is an array and each element is an array where matcher ignores order of elements
+     * and must match the following object using equality
+
+     * @param nestedArray
+     */
+    public LambdaDslJsonArray unorderedEachArrayLike(Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayLike();
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array and each element is an array where matcher ignores order of elements
+     * and must match the following object using equality
+     *
+     * @param numberExamples
+     * @param nestedArray
+     */
+    public LambdaDslJsonArray unorderedEachArrayLike(int numberExamples, Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayLike(numberExamples);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a maximum size and each element is an array where matcher ignores
+     * order of elements and must match the following object using equality
+     *
+     * @param size maximum size of the outer array
+     */
+    public LambdaDslJsonArray unorderedEachArrayWithMaxLike(Integer size, Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayWithMaxLike(size);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a maximum size and each element is an array where matcher ignores
+     * order of elements and must match the following object using equality
+     *
+     * @param numberExamples number of examples to generate
+     * @param size           maximum size of the outer array
+     */
+    public LambdaDslJsonArray unorderedEachArrayWithMaxLike(int numberExamples, Integer size,
+                                                            Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayWithMaxLike(numberExamples, size);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum size and each element is an array where matcher ignores
+     * order of elements and must match the following object using equality
+     *
+     * @param size minimum size of the outer array
+     */
+    public LambdaDslJsonArray unorderedEachArrayWithMinLike(Integer size, Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayWithMinLike(size);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum size and each element is an array where matcher ignores
+     * order of elements and must match the following object using equality
+     *
+     * @param numberExamples number of examples to generate
+     * @param size           minimum size of the outer array
+     */
+    public LambdaDslJsonArray unorderedEachArrayWithMinLike(int numberExamples, Integer size,
+                                                            Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayWithMinLike(numberExamples, size);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum and maximum size and each element is an array where
+     * matcher ignores order of elements and must match the following object using equality
+     *
+     * @param minSize minimum size of the outer array
+     * @param maxSize maximum size of the outer array
+     */
+    public LambdaDslJsonArray unorderedEachArrayWithMinMaxLike(Integer minSize, Integer maxSize,
+                                                               Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayWithMinMaxLike(minSize, maxSize);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
+     * Element that is an array with a minimum and maximum size and each element is an array where
+     * matcher ignores order of elements and must match the following object using equality
+     *
+     * @param minSize        minimum size of the outer array
+     * @param maxSize        maximum size of the outer array
+     * @param numberExamples number of examples to generate
+     */
+    public LambdaDslJsonArray unorderedEachArrayWithMinMaxLike(Integer minSize, Integer maxSize, int numberExamples,
+                                                               Consumer<LambdaDslJsonArray> nestedArray) {
+        final PactDslJsonArray arrayLike = pactArray.unorderedEachArrayWithMinMaxLike(numberExamples, minSize, maxSize);
+        final LambdaDslJsonArray dslArray = new LambdaDslJsonArray(arrayLike);
+        nestedArray.accept(dslArray);
+        arrayLike.closeArray().closeArray();
+        return this;
+    }
+
+    /**
      * Element that is an array where order is ignored
      */
     public LambdaDslJsonArray unorderedArrayMatcher() {
@@ -483,8 +697,8 @@ public class LambdaDslJsonArray {
     /**
      * Element that is an array where order is ignored in the following example
      */
-    public LambdaDslJsonArray unorderedArrayLike(Consumer<LambdaDslJsonBody> nestedObject) {
-        final PactDslJsonBody arrayLike = pactArray.unorderedArrayLike();
+    public LambdaDslJsonArray unorderedEachLike(Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedEachLike();
         final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
         nestedObject.accept(dslBody);
         arrayLike.closeArray();
@@ -496,8 +710,8 @@ public class LambdaDslJsonArray {
      *
      * @param value Value that each item in the array must match
      */
-    public LambdaDslJsonArray unorderedArrayLike(PactDslJsonRootValue value) {
-        pactArray.unorderedArrayLike(value);
+    public LambdaDslJsonArray unorderedEachLike(PactDslJsonRootValue value) {
+        pactArray.unorderedEachLike(value);
         return this;
     }
 
@@ -507,8 +721,8 @@ public class LambdaDslJsonArray {
      * @param value Value that each item in the array must match
      * @param numberExamples Number of examples to generate
      */
-    public LambdaDslJsonArray unorderedArrayLike(PactDslJsonRootValue value, int numberExamples) {
-        pactArray.unorderedArrayLike(value, numberExamples);
+    public LambdaDslJsonArray unorderedEachLike(PactDslJsonRootValue value, int numberExamples) {
+        pactArray.unorderedEachLike(value, numberExamples);
         return this;
     }
 
@@ -517,8 +731,8 @@ public class LambdaDslJsonArray {
      *
      * @param numberExamples Number of examples to generate
      */
-    public LambdaDslJsonArray unorderedArrayLike(int numberExamples, Consumer<LambdaDslJsonBody> nestedObject) {
-        final PactDslJsonBody arrayLike = pactArray.unorderedArrayLike(numberExamples);
+    public LambdaDslJsonArray unorderedEachLike(int numberExamples, Consumer<LambdaDslJsonBody> nestedObject) {
+        final PactDslJsonBody arrayLike = pactArray.unorderedEachLike(numberExamples);
         final LambdaDslJsonBody dslBody = new LambdaDslJsonBody(arrayLike);
         nestedObject.accept(dslBody);
         arrayLike.closeArray();

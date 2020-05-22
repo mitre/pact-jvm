@@ -989,4 +989,581 @@ public class LambdaDslObjectTest {
     arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(5).toMap();
     assertThat(arrayObjectRule.get("match"), is("type"));
   }
+
+    @Test
+    public void testUnorderedEachArrayLike() {
+        /*
+            {
+                "foo": [
+                    ["Bar"]
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayLike("foo")
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayLike("foo", a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayLikeWithExample() {
+        /*
+            {
+                "foo": [
+                    ["Bar", "Bar"]
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayLike("foo", 2)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayLike("foo", 2, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayWithMinLike() {
+        /*
+            {
+                "foo": [
+                    ["Bar"]
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayWithMinLike("foo", 2)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayWithMinLike("foo", 2, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("min"), is(2));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayWithMinLikeWithExample() {
+        /*
+            {
+                "foo": [
+                    ["Bar"]
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayWithMinLike("foo", 3, 2)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayWithMinLike("foo", 3, 2, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("min"), is(2));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayWithMaxLike() {
+        /*
+            {
+                "foo": [
+                    ["Bar"]
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayWithMaxLike("foo", 2)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayWithMaxLike("foo", 2, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("max"), is(2));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayWithMaxLikeWithExample() {
+        /*
+            {
+                "foo": [
+                    ["Bar"]
+                ]
+            }
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayWithMaxLike("foo", 2, 3)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayWithMaxLike("foo", 2, 3, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("max"), is(3));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayWithMinMaxLike() {
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayWithMinMaxLike("foo", 2, 10)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayWithMinMaxLike("foo", 2, 10, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("min"), is(2));
+        assertThat(arrayRule.get("max"), is(10));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachArrayWithMinMaxLikeWithExample() {
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachArrayWithMinMaxLike("foo", 2, 2, 10)
+                .stringType("Bar")
+                .closeArray()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachArrayWithMinMaxLike("foo", 2, 10, 2, a -> a.stringType("Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("min"), is(2));
+        assertThat(arrayRule.get("max"), is(10));
+        final Map<String, Object> subArrayRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(subArrayRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedEachLike() {
+        /*
+            {
+                "foo": [
+                    {
+                        "bar": "string"
+                    }
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachLike("foo")
+                .stringType("bar")
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachLike("foo", o -> o.stringType("bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+
+    }
+
+    @Test
+    public void testUnorderedEachLikeWithExample() {
+        /*
+            {
+                "foo": [
+                    {
+                        "bar": "Bar"
+                    },
+                    {
+                        "bar": "Bar"
+                    }
+                ]
+            }
+
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedEachLike("foo", 2)
+                .stringType("bar", "Bar")
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslJsonBody object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedEachLike("foo", 2, o -> o.stringType("bar", "Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedMinArrayLike() {
+        /*
+            {
+                "foo": [
+                    {
+                        "bar": "string"
+                    },
+                    {
+                        "bar": "string"
+                    }
+                ]
+            }
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedMinArrayLike("foo", 2)
+                .stringType("bar")
+                .closeObject()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslObject object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedMinArrayLike("foo", 2, o -> o.stringType("bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> arrayRule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(arrayRule.get("match"), is("ignore-order"));
+        assertThat(arrayRule.get("min"), is(2));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedMinArrayLikeWithExample() {
+        /*
+            {
+                "foo": [
+                    {
+                        "bar": "Bar"
+                    },
+                    {
+                        "bar": "Bar"
+                    },
+                    {
+                        "bar": "Bar"
+                    }
+                ]
+            }
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedMinArrayLike("foo", 2, 3)
+                .stringType("bar", "Bar")
+                .closeObject()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslObject object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedMinArrayLike("foo", 2, 3, o -> o.stringType("bar", "Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> rule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(rule.get("match"), is("ignore-order"));
+        assertThat(rule.get("min"), is(2));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedMaxArrayLike() {
+        /*
+            {
+                "foo": [
+                    {
+                        "bar": "string"
+                    }
+                ]
+            }
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedMaxArrayLike("foo", 2)
+                .stringType("bar")
+                .closeObject()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslObject object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedMaxArrayLike("foo", 2, o -> o.stringType("bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> rule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(rule.get("match"), is("ignore-order"));
+        assertThat(rule.get("max"), is(2));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedMaxArrayLikeWithExample() {
+        /*
+            {
+                "foo": [
+                    {
+                        "bar": "Bar"
+                    },
+                    {
+                        "bar": "Bar"
+                    }
+                ]
+            }
+         */
+
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedMaxArrayLike("foo", 3, 2)
+                .stringType("bar", "Bar")
+                .closeObject()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslObject object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedMaxArrayLike("foo", 3, 2, o -> o.stringType("bar", "Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> rule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(rule.get("match"), is("ignore-order"));
+        assertThat(rule.get("max"), is(3));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedMinMaxArrayLike() {
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedMinMaxArrayLike("foo", 2, 7)
+                .stringType("bar")
+                .closeObject()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslObject object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedMinMaxArrayLike("foo", 2, 7, o -> o.stringType("bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> rule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(rule.get("match"), is("ignore-order"));
+        assertThat(rule.get("min"), is(2));
+        assertThat(rule.get("max"), is(7));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
+
+    @Test
+    public void testUnorderedMinMaxArrayLikeWithExample() {
+        // Old DSL
+        final String pactDslJson = new PactDslJsonBody()
+                .unorderedMinMaxArrayLike("foo", 3, 5, 3)
+                .stringType("bar", "Bar")
+                .closeObject()
+                .closeArray()
+                .getBody()
+                .toString();
+
+        // Lambda DSL
+        final PactDslJsonBody actualPactDsl = new PactDslJsonBody();
+        final LambdaDslObject object = new LambdaDslJsonBody(actualPactDsl);
+        object
+                .unorderedMinMaxArrayLike("foo", 3, 5, 3, o -> o.stringType("bar", "Bar"));
+        actualPactDsl.close();
+
+        String actualJson = actualPactDsl.getBody().toString();
+        assertThat(actualJson, is(pactDslJson));
+        assertThat(actualPactDsl.getMatchers().allMatchingRules().size(), is(2));
+        final Map<String, Object> rule = actualPactDsl.getMatchers().allMatchingRules().get(0).toMap();
+        assertThat(rule.get("match"), is("ignore-order"));
+        assertThat(rule.get("min"), is(3));
+        assertThat(rule.get("max"), is(5));
+        final Map<String, Object> arrayObjectRule = actualPactDsl.getMatchers().allMatchingRules().get(1).toMap();
+        assertThat(arrayObjectRule.get("match"), is("type"));
+    }
 }

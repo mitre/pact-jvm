@@ -4,8 +4,11 @@ import au.com.dius.pact.consumer.dsl.PactDslJsonArray
 import au.com.dius.pact.consumer.dsl.PactDslJsonRootValue
 import au.com.dius.pact.core.model.PactSpecVersion
 import au.com.dius.pact.core.model.matchingrules.DateMatcher
+import au.com.dius.pact.core.model.matchingrules.EqualsIgnoreOrderMatcher
 import au.com.dius.pact.core.model.matchingrules.MatchingRuleGroup
 import au.com.dius.pact.core.model.matchingrules.MaxTypeMatcher
+import au.com.dius.pact.core.model.matchingrules.MinEqualsIgnoreOrderMatcher
+import au.com.dius.pact.core.model.matchingrules.MinMaxEqualsIgnoreOrderMatcher
 import au.com.dius.pact.core.model.matchingrules.MinTypeMatcher
 import au.com.dius.pact.core.model.matchingrules.NumberTypeMatcher
 import au.com.dius.pact.core.model.matchingrules.TypeMatcher
@@ -267,6 +270,90 @@ class PactDslJsonArrayMatcherSpec extends Specification {
     subject.matchers.toMap(PactSpecVersion.V2) == [
       '$.body': [match: 'type', min: 2],
       '$.body[*]': [match: 'type']
+    ]
+  }
+
+  def 'unorderedArrayMinLike generates content with correct values and matching rules'() {
+    given:
+    subject = PactDslJsonArray.unorderedArrayMinLike(3, PactDslJsonRootValue.integerType(1))
+
+    expect:
+    subject.body.toString() == '[1,1,1]'
+    def matchingRules = subject.matchers.matchingRules.values()
+    matchingRules[0].rules == [new MinEqualsIgnoreOrderMatcher(3)]
+    matchingRules[1].rules == [new NumberTypeMatcher(NumberTypeMatcher.NumberType.INTEGER)]
+  }
+
+  def 'unorderedEachArrayLike generates content with correct values and matching rules()'() {
+    given:
+    subject = new PactDslJsonArray()
+      .unorderedEachArrayLike(3)
+        .string('element')
+        .closeArray()
+      .closeArray()
+
+    when:
+    def result = new JsonSlurper().parseText(subject.body.toString())
+
+    then:
+    result.toString() == '[[[element], [element], [element]]]'
+    subject.matchers.matchingRules == [
+      '[0]': new MatchingRuleGroup([new MinEqualsIgnoreOrderMatcher(0)])
+    ]
+  }
+
+  def 'unorderedArrayMatcher generates content with correct values and matching rules'() {
+    given:
+    subject = new PactDslJsonArray().unorderedArrayMatcher()
+        .array().number(1).number(2).number(3).closeArray()
+        .array().number(4).number(5).number(6).closeArray()
+      .close()
+
+    when:
+    def result = new JsonSlurper().parseText(subject.body.toString())
+
+    then:
+    result.toString() == '[[1, 2, 3], [4, 5, 6]]'
+    subject.matchers.matchingRules == [
+      '$': new MatchingRuleGroup([EqualsIgnoreOrderMatcher.INSTANCE])
+    ]
+  }
+
+  def 'unorderedEachLike generates content with correct values and matching rules'() {
+    given:
+    subject = new PactDslJsonArray()
+      .unorderedEachLike(2)
+        .stringValue('foo', 'Foo')
+        .numberValue('bar', 5)
+      .closeObject()
+    .close()
+
+    when:
+    def result = subject.body.toString()
+
+    then:
+    result == '[[{"bar":5,"foo":"Foo"},{"bar":5,"foo":"Foo"}]]'
+    subject.matchers.matchingRules == [
+      '$[0]': new MatchingRuleGroup([EqualsIgnoreOrderMatcher.INSTANCE])
+    ]
+  }
+
+  def 'unorderedMinMaxArrayLike generates content with correct values and matching rules'() {
+    given:
+    subject = new PactDslJsonArray()
+      .unorderedMinMaxArrayLike(1, 4, 3)
+        .numberType('foo', 100)
+      .closeObject()
+    .close()
+
+    when:
+    def result = subject.body.toString()
+
+    then:
+    result == '[[{"foo":100},{"foo":100},{"foo":100}]]'
+    subject.matchers.matchingRules == [
+      '$[0]': new MatchingRuleGroup([new MinMaxEqualsIgnoreOrderMatcher(1, 4)]),
+      '$[0][*].foo': new MatchingRuleGroup([new NumberTypeMatcher(NumberTypeMatcher.NumberType.NUMBER)])
     ]
   }
 }
