@@ -40,7 +40,8 @@ object Matching : KLogging() {
             matchers ?: MatchingRulesImpl())
         }.filterNotNull())
       } else {
-        list + HeaderMatchResult(values.key, listOf(HeaderMismatch(values.key, values.value.joinToString(separator = ", "), "",
+        list + HeaderMatchResult(values.key,
+          listOf(HeaderMismatch(values.key, values.value.joinToString(separator = ", "), "",
           "Expected a header '${values.key}' but was missing")))
       }
     }
@@ -77,8 +78,11 @@ object Matching : KLogging() {
         }
       }
     } else {
-      if (expected.body.isMissing() || expected.body.isNull() || expected.body.isEmpty()) BodyMatchResult(null, emptyList())
-      else BodyMatchResult(BodyTypeMismatch(expectedContentType.getBaseType(), actualContentType.getBaseType()), emptyList())
+      if (expected.body.isMissing() || expected.body.isNull() || expected.body.isEmpty())
+        BodyMatchResult(null, emptyList())
+      else
+        BodyMatchResult(
+          BodyTypeMismatch(expectedContentType.getBaseType(), actualContentType.getBaseType()), emptyList())
     }
   }
 

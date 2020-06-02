@@ -131,6 +131,46 @@ data class ContentTypeMatcher @JvmOverloads constructor (val contentType: String
   override fun canMatch(contentType: ContentType) = true
 }
 
+/**
+ * Matcher for ignoring order of elements in array.
+ *
+ * This matcher will default to equality matching for non-array items.
+ */
+object EqualsIgnoreOrderMatcher : MatchingRule {
+  override fun toMap(spec: PactSpecVersion) = mapOf("match" to "ignore-order")
+  override fun canMatch(contentType: ContentType) = true
+}
+
+/**
+ * Ignore order matcher with a minimum size.
+ *
+ * This matcher will default to equality matching for non-array items.
+ */
+data class MinEqualsIgnoreOrderMatcher(val min: Int) : MatchingRule {
+  override fun toMap(spec: PactSpecVersion) = mapOf("match" to "ignore-order", "min" to min)
+  override fun canMatch(contentType: ContentType) = true
+}
+
+/**
+ * Ignore order matching with a maximum size.
+ *
+ * This matcher will default to equality matching for non-array items.
+ */
+data class MaxEqualsIgnoreOrderMatcher(val max: Int) : MatchingRule {
+  override fun toMap(spec: PactSpecVersion) = mapOf("match" to "ignore-order", "max" to max)
+  override fun canMatch(contentType: ContentType) = true
+}
+
+/**
+ * Ignore order matcher with a minimum size and maximum size.
+ *
+ * This matcher will default to equality matching for non-array items.
+ */
+data class MinMaxEqualsIgnoreOrderMatcher(val min: Int, val max: Int) : MatchingRule {
+  override fun toMap(spec: PactSpecVersion) = mapOf("match" to "ignore-order", "min" to min, "max" to max)
+  override fun canMatch(contentType: ContentType) = true
+}
+
 data class MatchingRuleGroup @JvmOverloads constructor(
   val rules: MutableList<MatchingRule> = mutableListOf(),
   val ruleLogic: RuleLogic = RuleLogic.AND
@@ -223,6 +263,17 @@ data class MatchingRuleGroup @JvmOverloads constructor(
             if (map.containsKey(DATE)) DateMatcher(map[DATE].toString())
             else DateMatcher()
           "values" -> ValuesMatcher
+          "ignore-order" -> {
+            if (map.containsKey(MIN) && map.containsKey(MAX)) {
+              MinMaxEqualsIgnoreOrderMatcher(mapEntryToInt(map, MIN), mapEntryToInt(map, MAX))
+            } else if (map.containsKey(MIN)) {
+              MinEqualsIgnoreOrderMatcher(mapEntryToInt(map, MIN))
+            } else if (map.containsKey(MAX)) {
+              MaxEqualsIgnoreOrderMatcher(mapEntryToInt(map, MAX))
+            } else {
+              EqualsIgnoreOrderMatcher
+            }
+          }
           "contentType" -> ContentTypeMatcher(map["value"].toString())
           else -> {
             logger.warn { "Unrecognised matcher ${map[MATCH]}, defaulting to equality matching" }
