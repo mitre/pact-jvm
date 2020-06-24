@@ -1,7 +1,6 @@
 package au.com.dius.pact.consumer.dsl;
 
 import au.com.dius.pact.consumer.ConsumerPactBuilder;
-import au.com.dius.pact.consumer.xml.PactXmlBuilder;
 import au.com.dius.pact.core.model.OptionalBody;
 import au.com.dius.pact.core.model.PactReaderKt;
 import au.com.dius.pact.core.model.generators.Category;
@@ -264,29 +263,6 @@ public class PactDslRequestWithoutPath extends PactDslRequestBase {
 
       return this;
     }
-
-  /**
-   * XML Response body to return
-   *
-   * @param xmlBuilder XML Builder used to construct the XML document
-   */
-  public PactDslRequestWithoutPath body(PactXmlBuilder xmlBuilder) {
-    requestMatchers.addCategory(xmlBuilder.getMatchingRules());
-    requestGenerators.addGenerators(xmlBuilder.getGenerators());
-
-    if (isContentTypeHeaderNotSet()) {
-      requestHeaders.put(CONTENT_TYPE, Collections.singletonList(ContentType.APPLICATION_XML.toString()));
-      requestBody = OptionalBody.body(xmlBuilder.asBytes());
-    } else {
-      String contentType = getContentTypeHeader();
-      ContentType ct = ContentType.parse(contentType);
-      Charset charset = ct.getCharset() != null ? ct.getCharset() : Charset.defaultCharset();
-      requestBody = OptionalBody.body(xmlBuilder.asBytes(charset),
-        new au.com.dius.pact.core.model.ContentType(contentType));
-    }
-
-    return this;
-  }
 
     /**
      * The path of the request
