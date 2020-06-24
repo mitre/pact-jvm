@@ -8,7 +8,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 
-@XmlRootElement(name = "projects", namespace = "http://some.namespace/and/more/stuff")
+@XmlRootElement(name = "projects")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Projects {
   @XmlElement(name = "project", type = Project.class)

@@ -1,9 +1,9 @@
 package au.com.dius.pact.consumer.junit.xml;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
+import au.com.dius.pact.consumer.dsl.PactDslXml;
 import au.com.dius.pact.consumer.junit.PactProviderRule;
 import au.com.dius.pact.consumer.junit.PactVerification;
-import au.com.dius.pact.consumer.xml.PactXmlBuilder;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.apache.commons.collections4.MapUtils;
@@ -11,7 +11,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,25 +53,27 @@ public class TodoXmlTest {
     .willRespondWith()
       .headers(mapOf("Content-Type", "application/xml"))
       .status(200)
-    .body(
-        new PactXmlBuilder("projects", "http://some.namespace/and/more/stuff").build(root -> {
-          root.setAttributes(mapOf("id", "1234"));
-          root.eachLike("project", 2, mapOf(
-            "id", integer(),
-            "type", "activity",
-            "name", string("Project 1"),
-            "due", timestamp("yyyy-MM-dd'T'HH:mm:ss.SSSX", "2016-02-11T09:46:56.023Z")
-          ), project -> {
-            project.appendElement("tasks", Collections.emptyMap(), task -> {
-              task.eachLike("task", 5, mapOf(
-                "id", integer(),
-                "name", string("Task 1"),
-                "done", bool(true)
-              ));
-            });
-          });
-        })
-    )
+      .body(PactDslXml.document("projects", projects ->
+        projects
+          .defaultNamespace("http://some.namespace/and/more/stuff")
+          .attribute("id", "1234")
+          .eachLike("project", 2, project ->
+            project.attributes(mapOf(
+              "id", integer(),
+              "type", "activity",
+              "name", string("Project 1"),
+              "due", timestamp("yyyy-MM-dd'T'HH:mm:ss.SSSX", "2016-02-11T09:46:56.023Z")
+            )).element("tasks", tasks ->
+              tasks.eachLike("task", 5, task ->
+                task.attributes(mapOf(
+                  "id", integer(),
+                  "name", string("Task 1"),
+                  "done", bool(true)
+                ))
+              )
+            )
+          )
+      ))
     .toPact();
   }
 
