@@ -10,11 +10,12 @@ import au.com.dius.pact.core.model.matchingrules.MinTypeMatcher;
 import au.com.dius.pact.core.model.matchingrules.RegexMatcher;
 import au.com.dius.pact.core.model.matchingrules.TimeMatcher;
 import au.com.dius.pact.core.model.matchingrules.TimestampMatcher;
+import java.nio.charset.Charset;
 
 /**
  * Abstract base class to support Object and Array JSON DSL builders
  */
-public abstract class DslPart {
+public abstract class DslPart implements DslContent {
     public static final String HEXADECIMAL = "[0-9a-fA-F]+";
     public static final String IP_ADDRESS = "(\\d{1,3}\\.)+\\d{1,3}";
     public static final String UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
@@ -43,7 +44,16 @@ public abstract class DslPart {
     protected abstract void putArray(DslPart object);
     public abstract Object getBody();
 
-    /**
+    @Override
+    public byte[] toBytes(Charset charset) {
+        final Object body = getBody();
+        if (body == null) {
+            return null;
+        }
+        return body.toString().getBytes(charset);
+    }
+
+  /**
      * Field which is an array
      * @param name field name
      */
@@ -301,6 +311,7 @@ public abstract class DslPart {
      */
     public abstract DslPart closeObject();
 
+    @Override
     public Category getMatchers() {
         return matchers;
     }
@@ -353,8 +364,10 @@ public abstract class DslPart {
    * This closes off the object graph build from the DSL in case any close[Object|Array] methods have not been called.
    * @return The root object of the object graph
    */
+  @Override
   public abstract DslPart close();
 
+  @Override
   public Generators getGenerators() {
     return generators;
   }

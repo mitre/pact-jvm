@@ -18,6 +18,7 @@ import au.com.dius.pact.core.model.matchingrules.RegexMatcher;
 import au.com.dius.pact.core.model.matchingrules.RuleLogic;
 import au.com.dius.pact.core.support.expressions.DataType;
 import com.mifmif.common.regex.Generex;
+import java.util.Optional;
 import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -226,15 +227,15 @@ public class PactDslResponse {
      *
      * @param body Response body built using the Pact body DSL
      */
-    public PactDslResponse body(DslPart body) {
-      DslPart parent = body.close();
+    public PactDslResponse body(DslContent body) {
+      DslContent parent = body.close();
 
       if (parent instanceof PactDslJsonRootValue) {
         ((PactDslJsonRootValue)parent).setEncodeJson(true);
       }
 
       responseMatchers.addCategory(parent.getMatchers());
-      responseGenerators.addGenerators(parent.generators);
+      responseGenerators.addGenerators(parent.getGenerators());
 
       Charset charset = Charset.defaultCharset();
       String contentType = ContentType.APPLICATION_JSON.toString();
@@ -246,9 +247,10 @@ public class PactDslResponse {
         charset = ct.getCharset() != null ? ct.getCharset() : Charset.defaultCharset();
       }
 
-      if (parent.getBody() != null) {
-        responseBody = OptionalBody.body(parent.getBody().toString().getBytes(charset),
-          new au.com.dius.pact.core.model.ContentType(contentType));
+      byte[] bodyContent = parent.toBytes(charset);
+      if (bodyContent != null) {
+        responseBody = OptionalBody.body(bodyContent,
+            new au.com.dius.pact.core.model.ContentType(contentType));
       } else {
         responseBody = OptionalBody.nullBody();
       }

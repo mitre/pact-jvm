@@ -283,15 +283,15 @@ public class PactDslRequestWithPath extends PactDslRequestBase {
      *
      * @param body Built using the Pact body DSL
      */
-    public PactDslRequestWithPath body(DslPart body) {
-        DslPart parent = body.close();
+    public PactDslRequestWithPath body(DslContent body) {
+        DslContent parent = body.close();
 
         if (parent instanceof PactDslJsonRootValue) {
           ((PactDslJsonRootValue)parent).setEncodeJson(true);
         }
 
         requestMatchers.addCategory(parent.getMatchers());
-        requestGenerators.addGenerators(parent.generators);
+        requestGenerators.addGenerators(parent.getGenerators());
 
         Charset charset = Charset.defaultCharset();
         String contentType = ContentType.APPLICATION_JSON.toString();
@@ -303,8 +303,9 @@ public class PactDslRequestWithPath extends PactDslRequestBase {
           charset = ct.getCharset() != null ? ct.getCharset() : Charset.defaultCharset();
         }
 
-        if (parent.getBody() != null) {
-          requestBody = OptionalBody.body(parent.getBody().toString().getBytes(charset),
+        byte[] bodyContent = parent.toBytes(charset);
+        if (bodyContent != null) {
+          requestBody = OptionalBody.body(bodyContent,
             new au.com.dius.pact.core.model.ContentType(contentType));
         } else {
           requestBody = OptionalBody.nullBody();

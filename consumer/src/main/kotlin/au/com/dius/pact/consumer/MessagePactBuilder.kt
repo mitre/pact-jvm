@@ -1,6 +1,6 @@
 package au.com.dius.pact.consumer
 
-import au.com.dius.pact.consumer.dsl.DslPart
+import au.com.dius.pact.consumer.dsl.DslContent
 import au.com.dius.pact.consumer.dsl.Matcher
 import au.com.dius.pact.core.model.Consumer
 import au.com.dius.pact.core.model.ContentType
@@ -118,7 +118,7 @@ class MessagePactBuilder(
   /**
    * Adds the JSON body as the message content
    */
-  fun withContent(body: DslPart): MessagePactBuilder {
+  fun withContent(body: DslContent): MessagePactBuilder {
     if (messages.isEmpty()) {
       throw InvalidPactException("expectsToReceive is required before withMetaData")
     }
@@ -139,7 +139,7 @@ class MessagePactBuilder(
     }
 
     val parent = body.close()
-    message.contents = OptionalBody.body(parent.toString().toByteArray(contentType.asCharset()), contentType)
+    message.contents = OptionalBody.body(parent.toBytes(contentType.asCharset()), contentType)
     message.metaData = metadata
     message.matchingRules.addCategory(parent.matchers)
 

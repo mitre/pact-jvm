@@ -228,10 +228,10 @@ public class PactDslRequestWithoutPath extends PactDslRequestBase {
      *
      * @param body Built using the Pact body DSL
      */
-    public PactDslRequestWithoutPath body(DslPart body) {
-      DslPart parent = body.close();
-      requestMatchers.addCategory(parent.matchers);
-      requestGenerators.addGenerators(parent.generators);
+    public PactDslRequestWithoutPath body(DslContent body) {
+      DslContent parent = body.close();
+      requestMatchers.addCategory(parent.getMatchers());
+      requestGenerators.addGenerators(parent.getGenerators());
       if (isContentTypeHeaderNotSet()) {
         requestHeaders.put(CONTENT_TYPE, Collections.singletonList(ContentType.APPLICATION_JSON.toString()));
         requestBody = OptionalBody.body(parent.toString().getBytes());
@@ -239,7 +239,7 @@ public class PactDslRequestWithoutPath extends PactDslRequestBase {
         String contentType = getContentTypeHeader();
         ContentType ct = ContentType.parse(contentType);
         Charset charset = ct.getCharset() != null ? ct.getCharset() : Charset.defaultCharset();
-        requestBody = OptionalBody.body(parent.toString().getBytes(charset),
+        requestBody = OptionalBody.body(parent.toBytes(charset),
           new au.com.dius.pact.core.model.ContentType(contentType));
       }
       return this;

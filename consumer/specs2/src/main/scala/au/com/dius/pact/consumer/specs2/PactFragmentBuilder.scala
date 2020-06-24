@@ -1,6 +1,6 @@
 package au.com.dius.pact.consumer.specs2
 
-import au.com.dius.pact.consumer.dsl.DslPart
+import au.com.dius.pact.consumer.dsl.DslContent
 import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{ConsumerPactRunnerKt, PactTestRun, PactVerificationResult}
 import au.com.dius.pact.core.model.matchingrules.{MatchingRules, MatchingRulesImpl}
@@ -82,7 +82,7 @@ object PactFragmentBuilder {
 
       def willRespondWith(status: Int,
                           headers: Map[String, List[String]],
-                          bodyAndMatchers: DslPart): PactWithAtLeastOneRequest = {
+                          bodyAndMatchers: DslContent): PactWithAtLeastOneRequest = {
         val rules = new MatchingRulesImpl()
         rules.addCategory(bodyAndMatchers.getMatchers)
         builder(
@@ -94,7 +94,7 @@ object PactFragmentBuilder {
             state.asJava,
             request,
             new Response(status, headers.view.mapValues(f => f.asJava).toMap.asJava,
-              OptionalBody.body(bodyAndMatchers.toString.getBytes), rules), null)))
+              OptionalBody.body(bodyAndMatchers.toBytes), rules), null)))
       }
     }
   }

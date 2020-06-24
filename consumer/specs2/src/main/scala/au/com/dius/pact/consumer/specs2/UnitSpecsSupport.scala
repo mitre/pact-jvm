@@ -1,6 +1,6 @@
 package au.com.dius.pact.consumer.specs2
 
-import au.com.dius.pact.consumer.dsl.DslPart
+import au.com.dius.pact.consumer.dsl.DslContent
 import au.com.dius.pact.consumer.model.MockProviderConfig
 import au.com.dius.pact.consumer.{MockHttpServer, PactTestExecutionContext}
 import au.com.dius.pact.core.model._
@@ -53,10 +53,10 @@ trait UnitSpecsSupport extends Specification {
 
   def buildResponse(status: Int,
                     headers: Map[String, String],
-                    bodyAndMatchers: DslPart): Response = {
+                    bodyAndMatchers: DslContent): Response = {
     val matchers = new MatchingRulesImpl()
     matchers.addCategory(bodyAndMatchers.getMatchers)
-    new Response(status, headers.view.mapValues(v => List(v).asJava).toMap.asJava, OptionalBody.body(bodyAndMatchers.toString.getBytes), matchers)
+    new Response(status, headers.view.mapValues(v => List(v).asJava).toMap.asJava, OptionalBody.body(bodyAndMatchers.toBytes), matchers)
   }
 
   def buildInteraction(description: String, states: List[ProviderState], request: Request, response: Response): RequestResponseInteraction =
