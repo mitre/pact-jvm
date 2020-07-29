@@ -482,7 +482,7 @@ class JsonBodyMatcherSpec extends Specification {
     then:
     mismatches.size() == 2
     mismatches*.mismatch[0].matches(/Expected \[(.*)\] to match \[(.*)\] ignoring order of elements/)
-    mismatches*.path == ['$', '$.1']
+    mismatches*.path == ['$', '$.*']
 
     where:
 

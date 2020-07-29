@@ -102,6 +102,30 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
   }
 
   /**
+   * Compares any "extra" actual elements to expected using wildcard
+   * matching.
+   */
+  private fun wildcardCompare(
+    basePath: List<String>,
+    expectedValues: List<JsonValue>,
+    actual: JsonValue,
+    allowUnexpectedKeys: Boolean,
+    matchers: MatchingRules
+  ): List<BodyItemMatchResult> {
+    val path = basePath + expectedValues.size.toString()
+    val pathStr = path.joinToString(".")
+    val starPathStr = (basePath + "*").joinToString(".")
+
+    return compare(path, expectedValues[0], actual, allowUnexpectedKeys, matchers)
+      .map { matchResult ->
+        // replaces index with '*' for clearer errors
+        matchResult.copy(result = matchResult.result.map { mismatch ->
+          mismatch.copy(path = mismatch.path.replaceFirst(pathStr, starPathStr))
+        })
+      }
+  }
+
+  /**
    * Compares every permutation of actual against expected.
    *
    * If actual has more elements than expected, and there is a wildcard matcher,
@@ -121,8 +145,7 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
         "body", matchers)
 
     val memoizedWildcardCompare = { actualIndex: Int ->
-      compare(path + expectedValues.size.toString(),
-        expectedValues[0], actualValues[actualIndex],
+      wildcardCompare(path, expectedValues, actualValues[actualIndex],
         allowUnexpectedKeys, matchers)
     }.memoizeFixed(actualValues.size)
 
