@@ -92,7 +92,10 @@ abstract class AbstractBaseMockServer : MockServer {
   }
 }
 
-abstract class BaseMockServer(val pact: RequestResponsePact, val config: MockProviderConfig) : AbstractBaseMockServer() {
+abstract class BaseMockServer(
+  val pact: RequestResponsePact,
+  val config: MockProviderConfig
+) : AbstractBaseMockServer() {
 
   private val mismatchedRequests = ConcurrentHashMap<Request, MutableList<PactVerificationResult>>()
   private val matchedRequests = ConcurrentLinkedQueue<Request>()
@@ -189,7 +192,8 @@ abstract class BaseMockServer(val pact: RequestResponsePact, val config: MockPro
 
   private fun invalidResponse(request: Request): Response {
     val body = "{ \"error\": \"Unexpected request : ${StringEscapeUtils.escapeJson(request.toString())}\" }"
-    return Response(500, mutableMapOf("Access-Control-Allow-Origin" to listOf("*"), "Content-Type" to listOf("application/json"),
+    return Response(500,
+      mutableMapOf("Access-Control-Allow-Origin" to listOf("*"), "Content-Type" to listOf("application/json"),
       "X-Pact-Unexpected-Request" to listOf("1")), OptionalBody.body(body.toByteArray(),
       au.com.dius.pact.core.model.ContentType.JSON))
   }
@@ -219,7 +223,8 @@ abstract class BaseJdkMockServer(
       } catch (e: Exception) {
         logger.error(e) { "Failed to generate response" }
         pactResponseToHttpExchange(Response(500, mutableMapOf("Content-Type" to listOf("application/json")),
-          OptionalBody.body("{\"error\": ${e.message}}".toByteArray(), au.com.dius.pact.core.model.ContentType.JSON)), exchange)
+          OptionalBody.body("{\"error\": ${e.message}}".toByteArray(),
+            au.com.dius.pact.core.model.ContentType.JSON)), exchange)
       }
     }
   }

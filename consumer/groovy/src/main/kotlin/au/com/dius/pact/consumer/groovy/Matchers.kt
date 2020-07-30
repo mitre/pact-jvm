@@ -346,7 +346,10 @@ open class Matchers {
     @Deprecated("use datetime instead")
     @JvmStatic
     @JvmOverloads
-    fun timestampExpression(expression: String, pattern: String = DateFormatUtils.ISO_DATETIME_FORMAT.pattern): Matcher {
+    fun timestampExpression(
+      expression: String,
+      pattern: String = DateFormatUtils.ISO_DATETIME_FORMAT.pattern
+    ): Matcher {
       return datetimeExpression(expression, pattern)
     }
 

@@ -130,7 +130,8 @@ open class PactBrokerLoader(
 
   private fun shouldFallBackToTags(): Boolean {
     return pactBrokerConsumerVersionSelectors.isEmpty() ||
-      (pactBrokerConsumerVersionSelectors.size == 1 && parseListExpression(pactBrokerConsumerVersionSelectors[0].tag).isEmpty())
+      (pactBrokerConsumerVersionSelectors.size == 1 && parseListExpression(pactBrokerConsumerVersionSelectors[0].tag)
+        .isEmpty())
   }
 
   private fun setupValueResolver(): ValueResolver {

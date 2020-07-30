@@ -11,7 +11,11 @@ interface PactTestRun<R> {
   fun run(mockServer: MockServer, context: PactTestExecutionContext?): R
 }
 
-fun <R> runConsumerTest(pact: RequestResponsePact, config: MockProviderConfig, test: PactTestRun<R>): PactVerificationResult {
+fun <R> runConsumerTest(
+  pact: RequestResponsePact,
+  config: MockProviderConfig,
+  test: PactTestRun<R>
+): PactVerificationResult {
   val server = mockServer(pact, config)
   return server.runAndWritePact(pact, config.pactVersion, test)
 }

@@ -52,9 +52,11 @@ object JUnitTestSupport {
     if (result !is Ok) {
       if (result is PactVerificationResult.Error) {
         if (result.mockServerState !is Ok) {
-          throw AssertionError("Pact Test function failed with an exception, possibly due to " + result.mockServerState, result.error)
+          throw AssertionError("Pact Test function failed with an exception, possibly due to " +
+            result.mockServerState, result.error)
         } else {
-          throw AssertionError("Pact Test function failed with an exception: " + result.error.message, result.error)
+          throw AssertionError("Pact Test function failed with an exception: " +
+            result.error.message, result.error)
         }
       } else {
         throw PactMismatchesException(result)

@@ -78,7 +78,8 @@ annotation class PactTestFor(
   val hostInterface: String = "",
 
   /**
-   * Port number to bind to. Only used for synchronous provider tests and defaults to 0, which causes a random free port to be chosen.
+   * Port number to bind to.
+   * Only used for synchronous provider tests and defaults to 0, which causes a random free port to be chosen.
    */
   val port: String = "",
 
@@ -175,7 +176,9 @@ class JUnit5MockServerSupport(private val baseMockServer: BaseMockServer) : Abst
   override fun validateMockServerState(testResult: Any?) = baseMockServer.validateMockServerState(testResult)
 }
 
-class PactConsumerTestExt : Extension, BeforeTestExecutionCallback, BeforeAllCallback, ParameterResolver, AfterTestExecutionCallback, AfterAllCallback {
+class PactConsumerTestExt :
+  Extension, BeforeTestExecutionCallback, BeforeAllCallback,
+  ParameterResolver, AfterTestExecutionCallback, AfterAllCallback {
   override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
     val providerInfo = lookupProviderInfo(extensionContext).first
     val type = parameterContext.parameter.type
@@ -208,7 +211,8 @@ class PactConsumerTestExt : Extension, BeforeTestExecutionCallback, BeforeAllCal
       }
       else -> {
         when {
-          type.isAssignableFrom(MockServer::class.java) -> setupMockServer(providerInfo.first, providerInfo.second, extensionContext)!!
+          type.isAssignableFrom(MockServer::class.java)
+            -> setupMockServer(providerInfo.first, providerInfo.second, extensionContext)!!
           type.isAssignableFrom(RequestResponsePact::class.java) -> store["pact"] as RequestResponsePact
           else -> throw UnsupportedOperationException("Could not inject parameter $type into test method")
         }
@@ -233,7 +237,11 @@ class PactConsumerTestExt : Extension, BeforeTestExecutionCallback, BeforeAllCal
     }
   }
 
-  private fun setupMockServer(providerInfo: ProviderInfo, pactMethod: String, context: ExtensionContext): AbstractBaseMockServer {
+  private fun setupMockServer(
+    providerInfo: ProviderInfo,
+    pactMethod: String,
+    context: ExtensionContext
+  ): AbstractBaseMockServer {
     val store = context.getStore(NAMESPACE)
     return if (store["mockServer"] == null) {
       val config = providerInfo.mockServerConfig()
@@ -336,8 +344,9 @@ class PactConsumerTestExt : Extension, BeforeTestExecutionCallback, BeforeAllCal
       val provider = parseExpression(pactAnnotation.provider, DataType.RAW)?.toString()
       val providerNameToUse = if (provider.isNullOrEmpty()) providerName else provider
       val pact = when (providerType) {
-        ProviderType.SYNCH, ProviderType.UNSPECIFIED -> ReflectionSupport.invokeMethod(method, context.requiredTestInstance,
-          ConsumerPactBuilder.consumer(pactAnnotation.consumer).hasPactWith(providerNameToUse)) as BasePact<*>
+        ProviderType.SYNCH, ProviderType.UNSPECIFIED
+          -> ReflectionSupport.invokeMethod(method, context.requiredTestInstance,
+            ConsumerPactBuilder.consumer(pactAnnotation.consumer).hasPactWith(providerNameToUse)) as BasePact<*>
         ProviderType.ASYNCH -> ReflectionSupport.invokeMethod(method, context.requiredTestInstance,
           MessagePactBuilder.consumer(pactAnnotation.consumer).hasPactWith(providerNameToUse)) as BasePact<*>
       }
