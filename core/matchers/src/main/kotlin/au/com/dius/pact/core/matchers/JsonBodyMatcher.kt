@@ -213,14 +213,6 @@ object JsonBodyMatcher : BodyMatcher, KLogging() {
         } else emptyList()
       }.toList().flatten()
 
-// REMOVE
-//      listOf(BodyMismatch(expectedValues, actualValues,
-//            "Expected ${valueOf(expectedValues)} to match ${valueOf(actualValues)} " +
-//            "ignoring order of elements",
-//            path.joinToString("."),
-//            generateJsonDiff(jsonArray(expectedValues), jsonArray(actualValues)))
-//          ) + remainingErrors
-
       result.add(BodyItemMatchResult(path.joinToString("."),
         listOf(BodyMismatch(expectedValues, actualValues,
           "Expected ${valueOf(expectedValues)} to match ${valueOf(actualValues)} " +
